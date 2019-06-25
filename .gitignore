@@ -1,0 +1,10 @@
+/_build
+/cover
+/deps
+erl_crash.dump
+*.ez
+elixir_build_*
+doc
+docs
+/test/tmp
+save.benchee
