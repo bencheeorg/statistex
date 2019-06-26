@@ -56,19 +56,6 @@ defmodule Statistex.Percentile do
     to_float(lower_bound)
   end
 
-  # Nothing at all: error
-  defp calculate_percentile_value(_, [], []) do
-    raise ArgumentError, "can't calculate percentile value on an empty list"
-  end
-
-  # Nothing beyond the split: use the last value before the split
-  defp calculate_percentile_value(_, previous_values, []) do
-    previous_values
-    |> Enum.reverse()
-    |> hd
-    |> to_float
-  end
-
   # Interpolation implemented according to: https://www.itl.nist.gov/div898/handbook/prc/section2/prc262.htm
   #
   # "Type 6" interpolation strategy. There are many ways to interpolate a value

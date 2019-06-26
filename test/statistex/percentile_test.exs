@@ -103,5 +103,10 @@ defmodule Statistex.PercentileTest do
       %{99 => result} = percentiles(@samples, [99])
       assert result == 300.0
     end
+
+    test "99.9999th percentile" do
+      %{99.9999 => result} = percentiles(@samples, [99.9999])
+      assert result == 300.0
+    end
   end
 end

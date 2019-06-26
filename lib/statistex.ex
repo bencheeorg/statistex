@@ -237,11 +237,7 @@ defmodule Statistex do
     total = Keyword.get_lazy(options, :total, fn -> total(samples) end)
     sample_size = Keyword.get_lazy(options, :sample_size, fn -> sample_size(samples) end)
 
-    if sample_size > 0 do
-      total / sample_size
-    else
-      raise(ArgumentError, @empty_list_error_message)
-    end
+    total / sample_size
   end
 
   @doc """

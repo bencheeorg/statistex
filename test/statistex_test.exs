@@ -6,6 +6,12 @@ defmodule Statistex.StatistexTest do
   import Statistex
   import StreamData
 
+  describe ".median/2" do
+    test "if handed percentiles missing the median percentile still calculates it" do
+      assert Statistex.median([1, 2, 3, 4, 5, 6, 8, 9], percentiles: %{}) == 4.5
+    end
+  end
+
   describe "property testing as we might get loads of data" do
     property "doesn't blow up no matter what kind of nonempty list of floats it's given" do
       check all(samples <- list_of(float(), min_length: 1)) do
@@ -44,12 +50,13 @@ defmodule Statistex.StatistexTest do
 
     property "percentiles are correctly related to each other" do
       check all(samples <- list_of(float(), min_length: 1)) do
-        percies = percentiles(samples, [25, 50, 75, 90, 99])
+        percies = percentiles(samples, [25, 50, 75, 90, 99, 99.9999])
 
         assert percies[25] <= percies[50]
         assert percies[50] <= percies[75]
         assert percies[75] <= percies[90]
         assert percies[90] <= percies[99]
+        assert percies[99] <= percies[99.9999]
       end
     end
   end
