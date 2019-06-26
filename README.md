@@ -1,4 +1,4 @@
-# Statistex
+# Statistex [![Build Status](https://travis-ci.org/bencheeorg/statistex.svg?branch=master)](https://travis-ci.org/bencheeorg/statistex) [![Coverage Status](https://coveralls.io/repos/github/bencheeorg/statistex/badge.svg?branch=master)](https://coveralls.io/github/bencheeorg/statistex?branch=master)
 
 Statistex helps you do common statistics calculations. It focusses on two things:
 
