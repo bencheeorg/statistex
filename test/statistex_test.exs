@@ -15,37 +15,59 @@ defmodule Statistex.StatistexTest do
   describe "property testing as we might get loads of data" do
     property "doesn't blow up no matter what kind of nonempty list of floats it's given" do
       check all(samples <- list_of(float(), min_length: 1)) do
-        stats = statistics(samples)
-
-        assert stats.sample_size >= 1
-        assert stats.minimum <= stats.maximum
-
-        assert stats.minimum <= stats.average
-        assert stats.average <= stats.maximum
-
-        assert stats.minimum <= stats.median
-        assert stats.median <= stats.maximum
-
-        assert stats.median == stats.percentiles[50]
-
-        assert stats.standard_deviation >= 0
-        assert stats.standard_deviation_ratio >= 0
-
-        # mode actually occurs in the samples
-        case stats.mode do
-          [_ | _] ->
-            Enum.each(stats.mode, fn mode ->
-              assert(mode in samples)
-            end)
-
-          # nothing to do there is no real mode
-          nil ->
-            nil
-
-          mode ->
-            assert mode in samples
-        end
+        assert_statistics_properties(samples)
       end
+    end
+
+    property "with a much bigger list properties still hold" do
+      check all(samples <- big_list_big_floats()) do
+        assert_statistics_properties(samples)
+      end
+    end
+
+    defp assert_statistics_properties(samples) do
+      stats = statistics(samples)
+
+      assert stats.sample_size >= 1
+      assert stats.minimum <= stats.maximum
+
+      assert stats.minimum <= stats.average
+      assert stats.average <= stats.maximum
+
+      assert stats.minimum <= stats.median
+      assert stats.median <= stats.maximum
+
+      assert stats.median == stats.percentiles[50]
+
+      assert stats.standard_deviation >= 0
+      assert stats.standard_deviation_ratio >= 0
+
+      # mode actually occurs in the samples
+      case stats.mode do
+        [_ | _] ->
+          Enum.each(stats.mode, fn mode ->
+            assert(mode in samples)
+          end)
+
+        # nothing to do there is no real mode
+        nil ->
+          nil
+
+        mode ->
+          assert mode in samples
+      end
+    end
+
+    defp big_list_big_floats do
+      sized(fn size ->
+        resize(
+          list_of(
+            float(),
+            min_length: 1
+          ),
+          size * 5
+        )
+      end)
     end
 
     property "percentiles are correctly related to each other" do

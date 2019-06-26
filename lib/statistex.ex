@@ -8,6 +8,8 @@ defmodule Statistex do
 
   Most statistics don't really make sense when there are no samples, for that reason all functions except for `sample_size/1` raise `ArgumentError` when handed an empty list.
   It is suggested that if it's possible for your program to throw an empty list at Statistex to handle that before handing it to Staistex to take care of the "no reasonable statistics" path entirely separately.
+
+  Limitations of ther erlang standard library apply (particularly `:math.pow/2` raises for VERY large numbers).
   """
 
   alias Statistex.{Mode, Percentile}
