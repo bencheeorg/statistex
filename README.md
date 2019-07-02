@@ -69,7 +69,7 @@ Statistex is written in pure elixir. C-extensions and friends would surely be fa
 
 ## History
 
-Statistex was extracted from [benchee](github.com/bencheeorg/benchee) and as such it powers benchees statistics calculations. Its great ancestor (if you will) was first conceived in [this commit](https://github.com/bencheeorg/benchee/commit/60fba66f927e0da20c4d16379dbf7274f77e63b5#diff-9d500e7ee9bd945a93b7172cca013d64).
+Statistex was extracted from [benchee](https://github.com/bencheeorg/benchee) and as such it powers benchees statistics calculations. Its great ancestor (if you will) was first conceived in [this commit](https://github.com/bencheeorg/benchee/commit/60fba66f927e0da20c4d16379dbf7274f77e63b5#diff-9d500e7ee9bd945a93b7172cca013d64).
 
 ## Contributing
 
