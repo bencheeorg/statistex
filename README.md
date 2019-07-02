@@ -15,6 +15,8 @@ def deps do
 end
 ```
 
+Supported elixir versions are 1.6+ (together with their respective erlang OTP versions aka 19+).
+
 ## Usage
 
 Check out the documentation but here is a small overview:
