@@ -1,9 +1,9 @@
 # Statistex [![Build Status](https://travis-ci.org/bencheeorg/statistex.svg?branch=master)](https://travis-ci.org/bencheeorg/statistex) [![Coverage Status](https://coveralls.io/repos/github/bencheeorg/statistex/badge.svg?branch=master)](https://coveralls.io/github/bencheeorg/statistex?branch=master)
 
-Statistex helps you do common statistics calculations. It focusses on two things:
+Statistex helps you do common statistics calculations and to explore a data set. It focusses on two things:
 
-* providing you a `statistics/2` function that just computes all statistics it knows for a given data set, reusing previously already made calculation to not compute something again (for instance standard deviation needs the average, so it first computes the average and then passes it on): `Statistex.statistics(samples)`
-* give you the opportunity to also pass known values to functions so that it doesn't need to compute more than it absolutely needs to: `Statistex.standard_deviation(samples, average: computed_average)`
+* providing you a `statistics/2` function that just **computes all statistics it knows for a data set**, reusing previously made calculations to not compute something again (for instance standard deviation needs the average, so it first computes the average and then passes it on): `Statistex.statistics(samples)`
+* gives you the opportunity to **pass known values to functions** so that it doesn't need to compute more than it absolutely needs to: `Statistex.standard_deviation(samples, average: computed_average)`
 
 ## Installation
 
@@ -16,6 +16,8 @@ end
 ```
 
 ## Usage
+
+Check out the documentation but here is a small overview:
 
 ```
 iex> samples = [1, 3.0, 2.35, 11.0, 1.37, 35, 5.5, 10, 0, 2.35]
@@ -40,11 +42,26 @@ iex> Statistex.average(samples)
 # (check the docs for what functions accepts what options)
 iex> Statistex.average(samples, sample_size: 10)
 7.156999999999999
+# Most Statistex functions raise given an empty list as most functions don't make sense then.
+# It is recommended that you manually handle the empty list case should that occur as your
+# output is likely also very different from when you have statistics.
+iex> Statistex.statistics([])
+** (ArgumentError) Passed an empty list ([]) to calculate statistics from, please pass a list containing at least on number.
 ```
 
 ## Alternatives
 
-TODO: talk about the statistics package etc
+In elixir there are 2 notable other libraries that I'm aware of: [statistics](https://github.com/msharp/elixir-statistics) and [Numerix](https://github.com/safwank/Numerix).
+
+Both include more functions than just statistics functions as in general math functions and more. They also have more statistics related functions as of this writing. So if you'e looking for something, that Statistex doesn't provide these are some of the first places I'd look.
+
+Why would you still want to use Statistex?
+
+* `statistics/2` is really nice when you're just exploring a data set or just want to have _everything_ at once
+* when calling `statistics/2` Statistex **reuses previously calculated values** (_average_ for _standard_deviation_ for instance, or a sorted list of samples for some calculations) which makes for more efficient calculations. Statistex **extends that capability to you** so that you can pass pre calculated values as optional arguments.
+* small and focussed on just statistics :)
+
+We're naturally also looking to add more statistical functions as we go along, and pull requests are very welcome :)
 
 ## Performance
 
