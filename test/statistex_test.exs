@@ -19,6 +19,8 @@ defmodule Statistex.StatistexTest do
       end
     end
 
+    # is milli seconds aka 90s
+    @tag timeout: 90_000
     property "with a much bigger list properties still hold" do
       check all(samples <- big_list_big_floats()) do
         assert_statistics_properties(samples)
@@ -65,7 +67,7 @@ defmodule Statistex.StatistexTest do
             float(),
             min_length: 1
           ),
-          size * 5
+          size * 4
         )
       end)
     end
