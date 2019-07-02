@@ -19,7 +19,7 @@ end
 
 Check out the documentation but here is a small overview:
 
-```
+```elixir
 iex> samples = [1, 3.0, 2.35, 11.0, 1.37, 35, 5.5, 10, 0, 2.35]
 # calculate all available statistics at once, efficiently reusing already calculated values
 iex> Statistex.statistics(samples)
