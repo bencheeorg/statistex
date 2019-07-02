@@ -70,3 +70,25 @@ Statistex is written in pure elixir. C-extensions and friends would surely be fa
 ## History
 
 Statistex was extracted from [benchee](github.com/bencheeorg/benchee) and as such it powers benchees statistics calculations. Its great ancestor (if you will) was first conceived in [this commit](https://github.com/bencheeorg/benchee/commit/60fba66f927e0da20c4d16379dbf7274f77e63b5#diff-9d500e7ee9bd945a93b7172cca013d64).
+
+## Contributing
+
+Contributions to benchee are **very welcome**! Bug reports, documentation, spelling corrections, new statistics, bugfixes... all of those (and probably more) are much appreciated contributions!
+
+Please respect the [Code of Conduct](//github.com/bencheeorg/statistex/blob/master/CODE_OF_CONDUCT.md).
+
+You can also look directly at the [open issues](https://github.com/bencheeorg/statistex/issues).
+
+A couple of (hopefully) helpful points:
+
+* Feel free to ask for help and guidance on an issue/PR ("How can I implement this?", "How could I test this?", ...)
+* Feel free to open early/not yet complete pull requests to get some early feedback
+* When in doubt if something is a good idea open an issue first to discuss it
+* In case I don't respond feel free to bump the issue/PR or ping me in other places
+
+## Development
+
+* `mix deps.get` to install dependencies
+* `mix test` to run tests
+* `mix dialyzer` to run dialyzer for type checking, might take a while on the first invocation (try building plts first with `mix dialyzer --plt`)
+* `mix credo --strict` to find code style problems
