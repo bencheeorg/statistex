@@ -18,6 +18,7 @@ defmodule Statistex do
   defstruct [
     :total,
     :average,
+    :variance,
     :standard_deviation,
     :standard_deviation_ratio,
     :median,
@@ -36,6 +37,7 @@ defmodule Statistex do
   @type t :: %__MODULE__{
           total: number,
           average: float,
+          variance: float,
           standard_deviation: float,
           standard_deviation_ratio: float,
           median: number,
@@ -92,6 +94,7 @@ defmodule Statistex do
       iex> Statistex.statistics([200, 400, 400, 400, 500, 500, 500, 700, 900])
       %Statistex{
         average:                  500.0,
+        variance:                 40_000.0,
         standard_deviation:       200.0,
         standard_deviation_ratio: 0.4,
         median:                   500.0,
@@ -109,6 +112,7 @@ defmodule Statistex do
       iex> Statistex.statistics([0, 0, 0, 0])
       %Statistex{
         average:                  0.0,
+        variance:                 0.0,
         standard_deviation:       0.0,
         standard_deviation_ratio: 0.0,
         median:                   0.0,
@@ -132,14 +136,11 @@ defmodule Statistex do
     total = total(samples)
     sample_size = length(samples)
     average = average(samples, total: total, sample_size: sample_size)
-    standard_deviation = standard_deviation(samples, average: average, sample_size: sample_size)
+    variance = variance(samples, average: average, sample_size: sample_size)
+    standard_deviation = standard_deviation(samples, variance: variance)
 
     standard_deviation_ratio =
-      standard_deviation_ratio(
-        samples,
-        average: average,
-        standard_deviation: standard_deviation
-      )
+      standard_deviation_ratio(samples, standard_deviation: standard_deviation)
 
     percentiles = calculate_percentiles(samples, configuration)
     median = median(samples, percentiles: percentiles)
@@ -147,6 +148,7 @@ defmodule Statistex do
     %__MODULE__{
       total: total,
       average: average,
+      variance: variance,
       standard_deviation: standard_deviation,
       standard_deviation_ratio: standard_deviation_ratio,
       median: median,
@@ -243,9 +245,9 @@ defmodule Statistex do
   end
 
   @doc """
-  Calculate the standard deviation.
+  Calculate the variance.
 
-  A measurement how much samples vary (the higher the more the samples vary).
+  A measurement how much samples vary (the higher the more the samples vary). This is the variance of a sample and is hence in its calculation divided by sample_size - 1 (Bessel's correction).
 
   ## Options
   If already calculated, the `:average` and `:sample_size` options can be provided to avoid recalulating those values.
@@ -254,10 +256,61 @@ defmodule Statistex do
 
   ## Examples
 
+      iex> Statistex.variance([4, 9, 11, 12, 17, 5, 8, 12, 12])
+      16.0
+
+      iex> Statistex.variance([4, 9, 11, 12, 17, 5, 8, 12, 12], sample_size: 9, average: 10.0)
+      16.0
+
+      iex> Statistex.variance([42])
+      0.0
+
+      iex> Statistex.variance([1, 1, 1, 1, 1, 1, 1])
+      0.0
+
+      iex> Statistex.variance([])
+      ** (ArgumentError) Passed an empty list ([]) to calculate statistics from, please pass a list containing at least on number.
+  """
+  @spec variance(samples, keyword) :: float
+  def variance(samples, options \\ [])
+  def variance([], _), do: raise(ArgumentError, @empty_list_error_message)
+
+  def variance(samples, options) do
+    sample_size = Keyword.get_lazy(options, :sample_size, fn -> sample_size(samples) end)
+
+    average =
+      Keyword.get_lazy(options, :average, fn -> average(samples, sample_size: sample_size) end)
+
+    do_variance(samples, average, sample_size)
+  end
+
+  defp do_variance(_samples, _average, 1), do: 0.0
+
+  defp do_variance(samples, average, sample_size) do
+    total_variance =
+      Enum.reduce(samples, 0, fn sample, total ->
+        total + :math.pow(sample - average, 2)
+      end)
+
+    total_variance / (sample_size - 1)
+  end
+
+  @doc """
+  Calculate the standard deviation.
+
+  A measurement how much samples vary (the higher the more the samples vary). It's the square root of the variance. Unlike the variance, its unit is the same as that of the sample (as calculating the variance includes squaring).
+
+  ## Options
+  If already calculated, the `:variance` option can be provided to avoid recalulating those values.
+
+  `Argumenterror` is raised if the given list is empty.
+
+  ## Examples
+
       iex> Statistex.standard_deviation([4, 9, 11, 12, 17, 5, 8, 12, 12])
       4.0
 
-      iex> Statistex.standard_deviation([4, 9, 11, 12, 17, 5, 8, 12, 12], sample_size: 9, average: 10.0)
+      iex> Statistex.standard_deviation([4, 9, 11, 12, 17, 5, 8, 12, 12], variance: 16.0)
       4.0
 
       iex> Statistex.standard_deviation([42])
@@ -274,23 +327,7 @@ defmodule Statistex do
   def standard_deviation([], _), do: raise(ArgumentError, @empty_list_error_message)
 
   def standard_deviation(samples, options) do
-    sample_size = Keyword.get_lazy(options, :sample_size, fn -> sample_size(samples) end)
-
-    average =
-      Keyword.get_lazy(options, :average, fn -> average(samples, sample_size: sample_size) end)
-
-    do_standard_deviation(samples, average, sample_size)
-  end
-
-  defp do_standard_deviation(_samples, _average, 1), do: 0.0
-
-  defp do_standard_deviation(samples, average, sample_size) do
-    total_variance =
-      Enum.reduce(samples, 0, fn sample, total ->
-        total + :math.pow(sample - average, 2)
-      end)
-
-    variance = total_variance / (sample_size - 1)
+    variance = Keyword.get_lazy(options, :variance, fn -> variance(samples) end)
     :math.sqrt(variance)
   end
 

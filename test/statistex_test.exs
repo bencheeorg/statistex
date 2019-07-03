@@ -41,6 +41,7 @@ defmodule Statistex.StatistexTest do
 
       assert stats.median == stats.percentiles[50]
 
+      assert stats.variance >= 0
       assert stats.standard_deviation >= 0
       assert stats.standard_deviation_ratio >= 0
 
