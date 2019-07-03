@@ -23,6 +23,7 @@ defmodule Statistex do
     :standard_deviation_ratio,
     :median,
     :percentiles,
+    :frequency_distribution,
     :mode,
     :minimum,
     :maximum,
@@ -42,6 +43,7 @@ defmodule Statistex do
           standard_deviation_ratio: float,
           median: number,
           percentiles: percentiles,
+          frequency_distribution: %{sample => pos_integer},
           mode: mode,
           minimum: number,
           maximum: number,
@@ -99,6 +101,13 @@ defmodule Statistex do
         standard_deviation_ratio: 0.4,
         median:                   500.0,
         percentiles:              %{50 => 500.0},
+        frequency_distribution:   %{
+          200 => 1,
+          400 => 3,
+          500 => 3,
+          700 => 1,
+          900 => 1
+        },
         mode:                     [500, 400],
         minimum:                  200,
         maximum:                  900,
@@ -117,6 +126,7 @@ defmodule Statistex do
         standard_deviation_ratio: 0.0,
         median:                   0.0,
         percentiles:              %{50 => 0.0},
+        frequency_distribution:   %{0 => 4},
         mode:                     0,
         minimum:                  0,
         maximum:                  0,
@@ -143,7 +153,8 @@ defmodule Statistex do
       standard_deviation_ratio(samples, standard_deviation: standard_deviation)
 
     percentiles = calculate_percentiles(samples, configuration)
-    median = median(samples, percentiles: percentiles)
+
+    frequency_distribution = frequency_distribution(samples)
 
     %__MODULE__{
       total: total,
@@ -151,9 +162,10 @@ defmodule Statistex do
       variance: variance,
       standard_deviation: standard_deviation,
       standard_deviation_ratio: standard_deviation_ratio,
-      median: median,
+      median: median(samples, percentiles: percentiles),
       percentiles: percentiles,
-      mode: mode(samples),
+      frequency_distribution: frequency_distribution,
+      mode: mode(samples, frequency_distribution: frequency_distribution),
       minimum: minimum(samples),
       maximum: maximum(samples),
       sample_size: sample_size
@@ -336,12 +348,12 @@ defmodule Statistex do
 
     This helps put the absolute standard deviation value into perspective expressing it relative to the average. It's what percentage of the absolute value of the average the variance takes.
 
+    `Argumenterror` is raised if the given list is empty.
+
     ## Options
     If already calculated, the `:average` and `:standard_deviation` options can be provided to avoid recalulating those values.
 
     If both values are provided, the provided samples will be ignored.
-
-    `Argumenterror` is raised if the given list is empty.
 
     ## Examples
 
@@ -438,12 +450,43 @@ defmodule Statistex do
   defdelegate(percentiles(samples, percentiles), to: Percentile)
 
   @doc """
+  A map showing which sample occurs how often in the samples.
+
+  Goes from a concrete occurence of the sample to the number of times it was observed in the samples.
+
+  ## Examples
+
+      iex> Statistex.frequency_distribution([1, 2, 4.23, 7, 2, 99])
+      %{
+        2 => 2,
+        1 => 1,
+        4.23 => 1,
+        7 => 1,
+        99 => 1
+      }
+
+      iex> Statistex.frequency_distribution([])
+      ** (ArgumentError) Passed an empty list ([]) to calculate statistics from, please pass a list containing at least on number.
+  """
+  @spec frequency_distribution(samples) :: %{required(sample) => pos_integer}
+  def frequency_distribution([]), do: raise(ArgumentError, @empty_list_error_message)
+
+  def frequency_distribution(samples) do
+    Enum.reduce(samples, %{}, fn sample, counts ->
+      Map.update(counts, sample, 1, fn old_value -> old_value + 1 end)
+    end)
+  end
+
+  @doc """
   Calculates the mode of the given samples.
 
-
-  Mode is the sample(s) that occur the most. Often one value, but can be multiple values if they occur the same amount of times. If no value occurs at least twice, this value will be nil.
+  Mode is the sample(s) that occur the most. Often one value, but can be multiple values if they occur the same amount of times. If no value occurs at least twice, there is no mode and it hence returns `nil`.
 
   `Argumenterror` is raised if the given list is empty.
+
+  ## Options
+
+  If already calculated, the `:frequency_distribution` option can be provided to avoid recalulating it.
 
   ## Examples
 
@@ -460,8 +503,9 @@ defmodule Statistex do
       iex> Enum.sort(mode)
       [1, 3, 5]
   """
-  @spec mode(samples) :: mode
+  @spec mode(samples, keyword) :: mode
   defdelegate mode(samples), to: Mode
+  defdelegate mode(samples, opts), to: Mode
 
   @doc """
   Calculates the median of the given samples.

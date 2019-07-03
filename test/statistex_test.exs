@@ -45,6 +45,11 @@ defmodule Statistex.StatistexTest do
       assert stats.standard_deviation >= 0
       assert stats.standard_deviation_ratio >= 0
 
+      frequency_entry_count = map_size(stats.frequency_distribution)
+
+      assert frequency_entry_count >= 1
+      assert frequency_entry_count <= stats.sample_size
+
       # mode actually occurs in the samples
       case stats.mode do
         [_ | _] ->
@@ -59,6 +64,13 @@ defmodule Statistex.StatistexTest do
         mode ->
           assert mode in samples
       end
+
+      # frequencies actually occur in samples
+      Enum.each(stats.frequency_distribution, fn {key, value} ->
+        assert key in samples
+        assert value >= 1
+        assert is_integer(value)
+      end)
     end
 
     defp big_list_big_floats do
