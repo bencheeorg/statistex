@@ -43,7 +43,7 @@ defmodule Statistex.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:credo, "~> 1.0.0", only: :dev},
+      {:credo, "~> 1.0", only: :dev},
       {:ex_doc, "~> 0.20.0", only: :dev},
       {:earmark, "~> 1.0", only: :dev},
       {:excoveralls, "~> 0.7", only: :test},
