@@ -1,21 +1,25 @@
 defmodule Statistex.Mode do
   @moduledoc false
 
-  @spec mode(Statistex.samples()) :: Statistex.mode()
-  def mode([]) do
+  import Statistex
+
+  @spec mode(Statistex.samples(), keyword) :: Statistex.mode()
+  def mode(samples, opts \\ [])
+
+  def mode([], _) do
     raise(
       ArgumentError,
       "Passed an empty list ([]) to calculate statistics from, please pass a list containing at least on number."
     )
   end
 
-  def mode(samples) do
-    samples
-    |> Enum.reduce(%{}, fn sample, counts ->
-      Map.update(counts, sample, 1, fn old_value -> old_value + 1 end)
-    end)
-    |> max_multiple
-    |> decide_mode
+  def mode(samples, opts) do
+    frequencies =
+      Keyword.get_lazy(opts, :frequency_distribution, fn -> frequency_distribution(samples) end)
+
+    frequencies
+    |> max_multiple()
+    |> decide_mode()
   end
 
   defp max_multiple(map) do
