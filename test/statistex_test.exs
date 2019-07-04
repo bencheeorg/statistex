@@ -71,6 +71,14 @@ defmodule Statistex.StatistexTest do
         assert value >= 1
         assert is_integer(value)
       end)
+
+      # counts some up to sample_size
+      count_sum =
+        stats.frequency_distribution
+        |> Map.values()
+        |> Enum.sum()
+
+      assert count_sum == stats.sample_size
     end
 
     defp big_list_big_floats do
