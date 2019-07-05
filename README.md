@@ -86,7 +86,7 @@ Statistics currently supported:
 
 In elixir there are 2 notable other libraries that I'm aware of: [statistics](https://github.com/msharp/elixir-statistics) and [Numerix](https://github.com/safwank/Numerix).
 
-Both include more functions than just statistics functions as in general math functions and more. They also have more statistics related functions as of this writing. So if you'e looking for something, that Statistex doesn't provide these are some of the first places I'd look.
+Both include more functions than just for statistics: general math and more (drawing of random values for instance). They also have more statistics related functions as of this writing. So if you'e looking for something, that Statistex doesn't provide (yet) these are some of the first places I'd look.
 
 Why would you still want to use Statistex?
 
