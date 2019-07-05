@@ -4,8 +4,6 @@ defmodule Statistex.Mode do
   import Statistex
 
   @spec mode(Statistex.samples(), keyword) :: Statistex.mode()
-  def mode(samples, opts \\ [])
-
   def mode([], _) do
     raise(
       ArgumentError,
