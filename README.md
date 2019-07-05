@@ -1,4 +1,4 @@
-# Statistex [![Build Status](https://travis-ci.org/bencheeorg/statistex.svg?branch=master)](https://travis-ci.org/bencheeorg/statistex) [![Coverage Status](https://coveralls.io/repos/github/bencheeorg/statistex/badge.svg?branch=master)](https://coveralls.io/github/bencheeorg/statistex?branch=master)
+# Statistex [![Hex Version](https://img.shields.io/hexpm/v/statistex.svg)](https://hex.pm/packages/statistex) [![docs](https://img.shields.io/badge/docs-hexpm-blue.svg)](https://hexdocs.pm/statistex/) [![Build Status](https://travis-ci.org/bencheeorg/statistex.svg?branch=master)](https://travis-ci.org/bencheeorg/statistex) [![Coverage Status](https://coveralls.io/repos/github/bencheeorg/statistex/badge.svg?branch=master)](https://coveralls.io/github/bencheeorg/statistex?branch=master)
 
 Statistex helps you do common statistics calculations and to explore a data set. It focusses on two things:
 
@@ -19,7 +19,7 @@ Supported elixir versions are 1.6+ (together with their respective erlang OTP ve
 
 ## Usage
 
-Check out the documentation but here is a small overview:
+Check out the [documentation of the main Statistex module](https://hexdocs.pm/statistex/Statistex.html) but here is a small overview:
 
 ```elixir
 iex> samples = [1, 3.0, 2.35, 11.0, 1.37, 35, 5.5, 10, 0, 2.35]
@@ -65,7 +65,7 @@ iex> Statistex.statistics([])
 
 ## Supported Statistics
 
-For an up to date overview with explanations please check out the documentation.
+For an up to date overview with explanations please check out the [documentation of the Statistex module](https://hexdocs.pm/statistex/Statistex.html).
 
 Statistics currently supported:
 
