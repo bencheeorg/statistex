@@ -27,6 +27,17 @@ iex> samples = [1, 3.0, 2.35, 11.0, 1.37, 35, 5.5, 10, 0, 2.35]
 iex> Statistex.statistics(samples)
 %Statistex{
   average: 7.156999999999999,
+  frequency_distribution: %{
+    0 => 1,
+    1 => 1,
+    10 => 1,
+    35 => 1,
+    1.37 => 1,
+    2.35 => 2,
+    3.0 => 1,
+    5.5 => 1,
+    11.0 => 1
+  },
   maximum: 35,
   median: 2.675,
   minimum: 0,
@@ -35,7 +46,8 @@ iex> Statistex.statistics(samples)
   sample_size: 10,
   standard_deviation: 10.47189577445799,
   standard_deviation_ratio: 1.46316833512058,
-  total: 71.57
+  total: 71.57,
+  variance: 109.6606011111111
 }
 # or just calculate the value you need
 iex> Statistex.average(samples)
@@ -50,6 +62,25 @@ iex> Statistex.average(samples, sample_size: 10)
 iex> Statistex.statistics([])
 ** (ArgumentError) Passed an empty list ([]) to calculate statistics from, please pass a list containing at least on number.
 ```
+
+## Supported Statistics
+
+For an up to date overview with explanations please check out the documentation.
+
+Statistics currently supported:
+
+* average
+* frequency_distribution
+* maximum
+* median
+* minimum
+* mode
+* percentiles
+* sample_size
+* standard_deviation
+* standard_deviation_ratio
+* total
+* variance
 
 ## Alternatives
 
