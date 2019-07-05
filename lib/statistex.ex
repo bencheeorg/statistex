@@ -261,10 +261,10 @@ defmodule Statistex do
 
   A measurement how much samples vary (the higher the more the samples vary). This is the variance of a sample and is hence in its calculation divided by sample_size - 1 (Bessel's correction).
 
+  `Argumenterror` is raised if the given list is empty.
+
   ## Options
   If already calculated, the `:average` and `:sample_size` options can be provided to avoid recalulating those values.
-
-  `Argumenterror` is raised if the given list is empty.
 
   ## Examples
 
@@ -454,6 +454,8 @@ defmodule Statistex do
 
   Goes from a concrete occurence of the sample to the number of times it was observed in the samples.
 
+  `Argumenterror` is raised if the given list is empty.
+
   ## Examples
 
       iex> Statistex.frequency_distribution([1, 2, 4.23, 7, 2, 99])
@@ -504,8 +506,7 @@ defmodule Statistex do
       [1, 3, 5]
   """
   @spec mode(samples, keyword) :: mode
-  defdelegate mode(samples), to: Mode
-  defdelegate mode(samples, opts), to: Mode
+  def mode(samples, opts \\ []), do: Mode.mode(samples, opts)
 
   @doc """
   Calculates the median of the given samples.
