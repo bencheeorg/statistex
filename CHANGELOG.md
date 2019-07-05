@@ -1,4 +1,4 @@
-## 1.0 yyyy-mm-dd
+## 1.0 2019-07-05
 
 Import of the initial functionality from [benchee](github.com/bencheeorg/benchee).
 
