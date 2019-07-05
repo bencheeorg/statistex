@@ -57,7 +57,10 @@ defmodule Statistex.MixProject do
   defp package do
     [
       maintainers: ["Tobias Pfeiffer"],
-      licenses: ["MIT"]
+      licenses: ["MIT"],
+      links: %{
+        "github" => "https://github.com/bencheeorg/statistex"
+      }
     ]
   end
 end
