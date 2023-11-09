@@ -498,8 +498,12 @@ defmodule Statistex do
       iex> Statistex.mode([1, 2, 3, 4, 5])
       nil
 
+      # When a measurement failed and nils is reported as the only value
+      iex> Statistex.mode([nil])
+      nil
+
       iex> Statistex.mode([])
-      ** (ArgumentError) Passed an empty list ([]) to calculate statistics from, please pass a list containing at least on number.
+      ** (ArgumentError) Passed an empty list ([]) to calculate statistics from, please pass a list containing at least one number.
 
       iex> mode = Statistex.mode([5, 3, 4, 5, 1, 3, 1])
       iex> Enum.sort(mode)

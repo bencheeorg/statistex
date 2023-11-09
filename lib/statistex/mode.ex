@@ -7,7 +7,7 @@ defmodule Statistex.Mode do
   def mode([], _) do
     raise(
       ArgumentError,
-      "Passed an empty list ([]) to calculate statistics from, please pass a list containing at least on number."
+      "Passed an empty list ([]) to calculate statistics from, please pass a list containing at least one number."
     )
   end
 
