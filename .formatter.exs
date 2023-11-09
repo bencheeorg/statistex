@@ -1,10 +1,4 @@
+# Used by "mix format"
 [
-  inputs: [
-    "lib/**/*.{ex,exs}",
-    "test/**/*.{ex,exs}",
-    "mix/**/*.{ex,exs}",
-    "./mix.exs",
-    "samples/**/*.{ex,exs}"
-  ],
-  import_deps: [:stream_data]
+  inputs: ["{mix,.formatter}.exs", "{config,lib,test,samples,mix}/**/*.{ex,exs}"]
 ]
