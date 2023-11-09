@@ -25,10 +25,8 @@ defmodule Statistex.MixProject do
         "safe_coveralls.travis": :test
       ],
       dialyzer: [
-        dialyzer: [
-          flags: [:unmatched_returns, :error_handling, :underspecs],
-          plt_file: {:no_warn, "tools/plts/benchee.plt"}
-        ]
+        flags: [:unmatched_returns, :error_handling, :underspecs],
+        plt_file: {:no_warn, "tools/plts/benchee.plt"}
       ],
       name: "Statistex",
       source_url: "https://github.com/bencheeorg/statistex",
