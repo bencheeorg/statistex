@@ -1,4 +1,4 @@
-# Statistex [![Hex Version](https://img.shields.io/hexpm/v/statistex.svg)](https://hex.pm/packages/statistex) [![docs](https://img.shields.io/badge/docs-hexpm-blue.svg)](https://hexdocs.pm/statistex/) [![CI](https://github.com/bencheeorg/statistex/actions/workflows/main.yml/badge.svg)](https://github.com/bencheeorg/statistex/actions/workflows/main.yml) [![Coverage Status](https://coveralls.io/repos/github/bencheeorg/statistex/badge.svg?branch=master)](https://coveralls.io/github/bencheeorg/statistex?branch=master)
+# Statistex [![Hex Version](https://img.shields.io/hexpm/v/statistex.svg)](https://hex.pm/packages/statistex) [![docs](https://img.shields.io/badge/docs-hexpm-blue.svg)](https://hexdocs.pm/statistex/) [![CI](https://github.com/bencheeorg/statistex/actions/workflows/main.yml/badge.svg)](https://github.com/bencheeorg/statistex/actions/workflows/main.yml) [![Coverage Status](https://coveralls.io/repos/github/bencheeorg/statistex/badge.svg?branch=main)](https://coveralls.io/github/bencheeorg/statistex?branch=main)
 
 Statistex helps you do common statistics calculations and to explore a data set. It focusses on two things:
 
