@@ -12,6 +12,104 @@ defmodule Statistex.StatistexTest do
     end
   end
 
+  describe ".outliers_bounds/2" do
+    test "returns outlier bounds for samples without outliers" do
+      assert Statistex.outliers_bounds([200, 400, 400, 400, 500, 500, 500, 700, 900]) ==
+               {200, 900.0}
+    end
+
+    test "returns outlier bounds for samples with outliers" do
+      assert Statistex.outliers_bounds([50, 50, 450, 450, 450, 500, 500, 500, 600, 900]) ==
+               {87.5, 787.5}
+    end
+  end
+
+  describe ".statistics/2" do
+    test "returns Statistex struct without outliers" do
+      assert Statistex.statistics([200, 400, 400, 400, 500, 500, 500, 700, 900]) ==
+               %Statistex{
+                 total: 4500,
+                 average: 500.0,
+                 variance: 40000.0,
+                 standard_deviation: 200.0,
+                 standard_deviation_ratio: 0.4,
+                 median: 500.0,
+                 percentiles: %{25 => 400.0, 50 => 500.0, 75 => 600.0},
+                 frequency_distribution: %{200 => 1, 400 => 3, 500 => 3, 700 => 1, 900 => 1},
+                 mode: [500, 400],
+                 minimum: 200,
+                 maximum: 900,
+                 outliers_bounds: {200, 900.0},
+                 outliers: [],
+                 sample_size: 9
+               }
+    end
+
+    test "returns Statistex struct with outliers" do
+      assert Statistex.statistics([50, 50, 450, 450, 450, 500, 500, 500, 600, 900]) ==
+               %Statistex{
+                 total: 4450,
+                 average: 445.0,
+                 variance: 61361.11111111111,
+                 standard_deviation: 247.71175004652304,
+                 standard_deviation_ratio: 0.5566556180820742,
+                 median: 475.0,
+                 percentiles: %{25 => 350.0, 50 => 475.0, 75 => 525.0},
+                 frequency_distribution: %{50 => 2, 450 => 3, 500 => 3, 600 => 1, 900 => 1},
+                 mode: [500, 450],
+                 minimum: 50,
+                 maximum: 900,
+                 outliers_bounds: {87.5, 787.5},
+                 outliers: [50, 50, 900],
+                 sample_size: 10
+               }
+    end
+
+    test "returns Statistex struct with excluded outliers once" do
+      assert Statistex.statistics([50, 50, 450, 450, 450, 500, 500, 500, 600, 900],
+               exclude_outliers: :once
+             ) ==
+               %Statistex{
+                 total: 3450,
+                 average: 492.85714285714283,
+                 variance: 2857.142857142857,
+                 standard_deviation: 53.452248382484875,
+                 standard_deviation_ratio: 0.1084538372977954,
+                 median: 500.0,
+                 percentiles: %{25 => 450.0, 50 => 500.0, 75 => 500.0},
+                 frequency_distribution: %{450 => 3, 500 => 3, 600 => 1},
+                 mode: [500, 450],
+                 minimum: 450,
+                 maximum: 600,
+                 outliers_bounds: {450, 575.0},
+                 outliers: [600, 50, 50, 900],
+                 sample_size: 7
+               }
+    end
+
+    test "returns Statistex struct with excluded outliers repeatedly" do
+      assert Statistex.statistics([50, 50, 450, 450, 450, 500, 500, 500, 600, 900],
+               exclude_outliers: :repeatedly
+             ) ==
+               %Statistex{
+                 total: 2850,
+                 average: 475.0,
+                 variance: 750.0,
+                 standard_deviation: 27.386127875258307,
+                 standard_deviation_ratio: 0.05765500605317538,
+                 median: 475.0,
+                 percentiles: %{25 => 450.0, 50 => 475.0, 75 => 500.0},
+                 frequency_distribution: %{450 => 3, 500 => 3},
+                 mode: [500, 450],
+                 minimum: 450,
+                 maximum: 500,
+                 outliers_bounds: {450, 500},
+                 outliers: [50, 50, 900, 600],
+                 sample_size: 6
+               }
+    end
+  end
+
   describe "property testing as we might get loads of data" do
     property "doesn't blow up no matter what kind of nonempty list of floats it's given" do
       check all(samples <- list_of(float(), min_length: 1)) do
