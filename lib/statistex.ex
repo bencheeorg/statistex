@@ -79,7 +79,7 @@ defmodule Statistex do
   """
   @type percentiles :: %{number() => float}
 
-  @empty_list_error_message "Passed an empty list ([]) to calculate statistics from, please pass a list containing at least on number."
+  @empty_list_error_message "Passed an empty list ([]) to calculate statistics from, please pass a list containing at least one number."
 
   @doc """
   Calculate all statistics Statistex offers for a given list of numbers.
