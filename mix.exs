@@ -49,7 +49,7 @@ defmodule Statistex.MixProject do
       {:earmark, "~> 1.0", only: :dev},
       {:excoveralls, "~> 0.7", only: :test},
       # dev and test so that the formatter has access
-      {:stream_data, "~> 0.4", only: [:dev, :test]},
+      {:stream_data, "~> 1.1", only: [:dev, :test]},
       {:inch_ex, "~> 2.0", only: :docs},
       {:dialyxir, "~> 1.0", only: :dev, runtime: false}
     ]
