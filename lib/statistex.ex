@@ -116,7 +116,7 @@ defmodule Statistex do
       }
 
       iex> Statistex.statistics([])
-      ** (ArgumentError) Passed an empty list ([]) to calculate statistics from, please pass a list containing at least on number.
+      ** (ArgumentError) Passed an empty list ([]) to calculate statistics from, please pass a list containing at least one number.
 
       iex> Statistex.statistics([0, 0, 0, 0])
       %Statistex{
@@ -189,7 +189,7 @@ defmodule Statistex do
       0
 
       iex> Statistex.total([])
-      ** (ArgumentError) Passed an empty list ([]) to calculate statistics from, please pass a list containing at least on number.
+      ** (ArgumentError) Passed an empty list ([]) to calculate statistics from, please pass a list containing at least one number.
   """
   @spec total(samples) :: number
   def total([]), do: raise(ArgumentError, @empty_list_error_message)
@@ -243,7 +243,7 @@ defmodule Statistex do
       20.0
 
       iex> Statistex.average([])
-      ** (ArgumentError) Passed an empty list ([]) to calculate statistics from, please pass a list containing at least on number.
+      ** (ArgumentError) Passed an empty list ([]) to calculate statistics from, please pass a list containing at least one number.
   """
   @spec average(samples, keyword) :: float
   def average(samples, options \\ [])
@@ -281,7 +281,7 @@ defmodule Statistex do
       0.0
 
       iex> Statistex.variance([])
-      ** (ArgumentError) Passed an empty list ([]) to calculate statistics from, please pass a list containing at least on number.
+      ** (ArgumentError) Passed an empty list ([]) to calculate statistics from, please pass a list containing at least one number.
   """
   @spec variance(samples, keyword) :: float
   def variance(samples, options \\ [])
@@ -332,7 +332,7 @@ defmodule Statistex do
       0.0
 
       iex> Statistex.standard_deviation([])
-      ** (ArgumentError) Passed an empty list ([]) to calculate statistics from, please pass a list containing at least on number.
+      ** (ArgumentError) Passed an empty list ([]) to calculate statistics from, please pass a list containing at least one number.
   """
   @spec standard_deviation(samples, keyword) :: float
   def standard_deviation(samples, options \\ [])
@@ -370,7 +370,7 @@ defmodule Statistex do
         0.4
 
         iex> Statistex.standard_deviation_ratio([])
-        ** (ArgumentError) Passed an empty list ([]) to calculate statistics from, please pass a list containing at least on number.
+        ** (ArgumentError) Passed an empty list ([]) to calculate statistics from, please pass a list containing at least one number.
   """
   @spec standard_deviation_ratio(samples, keyword) :: float
   def standard_deviation_ratio(samples, options \\ [])
@@ -443,7 +443,7 @@ defmodule Statistex do
       ** (ArgumentError) percentile must be between 0 and 100, got: 0
 
       iex> Statistex.percentiles([], [50])
-      ** (ArgumentError) Passed an empty list ([]) to calculate statistics from, please pass a list containing at least on number.
+      ** (ArgumentError) Passed an empty list ([]) to calculate statistics from, please pass a list containing at least one number.
   """
   @spec percentiles(samples, number | [number(), ...]) ::
           percentiles()
@@ -468,7 +468,7 @@ defmodule Statistex do
       }
 
       iex> Statistex.frequency_distribution([])
-      ** (ArgumentError) Passed an empty list ([]) to calculate statistics from, please pass a list containing at least on number.
+      ** (ArgumentError) Passed an empty list ([]) to calculate statistics from, please pass a list containing at least one number.
   """
   @spec frequency_distribution(samples) :: %{required(sample) => pos_integer}
   def frequency_distribution([]), do: raise(ArgumentError, @empty_list_error_message)
@@ -533,7 +533,7 @@ defmodule Statistex do
       0.0
 
       iex> Statistex.median([])
-      ** (ArgumentError) Passed an empty list ([]) to calculate statistics from, please pass a list containing at least on number.
+      ** (ArgumentError) Passed an empty list ([]) to calculate statistics from, please pass a list containing at least one number.
   """
   @spec median(samples, keyword) :: number
   def median(samples, options \\ [])
@@ -559,7 +559,7 @@ defmodule Statistex do
       100
 
       iex> Statistex.maximum([])
-      ** (ArgumentError) Passed an empty list ([]) to calculate statistics from, please pass a list containing at least on number.
+      ** (ArgumentError) Passed an empty list ([]) to calculate statistics from, please pass a list containing at least one number.
   """
   @spec maximum(samples) :: sample
   def maximum([]), do: raise(ArgumentError, @empty_list_error_message)
@@ -576,7 +576,7 @@ defmodule Statistex do
       1
 
       iex> Statistex.minimum([])
-      ** (ArgumentError) Passed an empty list ([]) to calculate statistics from, please pass a list containing at least on number.
+      ** (ArgumentError) Passed an empty list ([]) to calculate statistics from, please pass a list containing at least one number.
   """
   @spec minimum(samples) :: sample
   def minimum([]), do: raise(ArgumentError, @empty_list_error_message)
