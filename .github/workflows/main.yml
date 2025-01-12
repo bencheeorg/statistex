@@ -21,16 +21,8 @@ jobs:
         #
         # https://hexdocs.pm/elixir/compatibility-and-deprecations.html#between-elixir-and-erlang-otp
         include:
-          - elixir_version: '1.7.4'
-            otp_version: '20.3'
-          - elixir_version: '1.8.2'
-            otp_version: '20.3'
-          - elixir_version: '1.9.4'
-            otp_version: '21.3'
-          - elixir_version: '1.10.4'
-            otp_version: '21.3'
-          - elixir_version: '1.11.4'
-            otp_version: '22.3'
+          # Code should work down to elixir 1.7, but stream_data requires 1.12+ and I don't think it's worth my time to
+          # be conditionally including the library: https://github.com/whatyouhide/stream_data/blob/main/CHANGELOG.md#v110
           - elixir_version: '1.12.3'
             otp_version: '23.3'
           - elixir_version: '1.13.4'
