@@ -60,7 +60,7 @@ iex> Statistex.average(samples, sample_size: 10)
 # It is recommended that you manually handle the empty list case should that occur as your
 # output is likely also very different from when you have statistics.
 iex> Statistex.statistics([])
-** (ArgumentError) Passed an empty list ([]) to calculate statistics from, please pass a list containing at least on number.
+** (ArgumentError) Passed an empty list ([]) to calculate statistics from, please pass a list containing at least one number.
 ```
 
 ## Supported Statistics
