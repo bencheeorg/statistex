@@ -16,6 +16,8 @@ end
 ```
 
 Supported elixir versions are 1.6+ (together with their respective erlang OTP versions aka 19+).
+Tests are only running against elixir 1.12+ though, as some dependencies aren't compatible with versions that old.
+But also, most people probably don't care about them.
 
 ## Usage
 
