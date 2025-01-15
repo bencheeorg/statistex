@@ -12,14 +12,14 @@ defmodule Statistex.StatistexTest do
     end
   end
 
-  describe ".outliers_bounds/2" do
+  describe ".outlier_bounds/2" do
     test "returns outlier bounds for samples without outliers" do
-      assert Statistex.outliers_bounds([200, 400, 400, 400, 500, 500, 500, 700, 900]) ==
+      assert Statistex.outlier_bounds([200, 400, 400, 400, 500, 500, 500, 700, 900]) ==
                {200, 900.0}
     end
 
     test "returns outlier bounds for samples with outliers" do
-      assert Statistex.outliers_bounds([50, 50, 450, 450, 450, 500, 500, 500, 600, 900]) ==
+      assert Statistex.outlier_bounds([50, 50, 450, 450, 450, 500, 500, 500, 600, 900]) ==
                {87.5, 787.5}
     end
   end
@@ -39,7 +39,7 @@ defmodule Statistex.StatistexTest do
                  mode: [500, 400],
                  minimum: 200,
                  maximum: 900,
-                 outliers_bounds: {200, 900.0},
+                 outlier_bounds: {200, 900.0},
                  outliers: [],
                  sample_size: 9
                }
@@ -59,7 +59,7 @@ defmodule Statistex.StatistexTest do
                  mode: [500, 450],
                  minimum: 50,
                  maximum: 900,
-                 outliers_bounds: {87.5, 787.5},
+                 outlier_bounds: {87.5, 787.5},
                  outliers: [50, 50, 900],
                  sample_size: 10
                }
@@ -81,7 +81,7 @@ defmodule Statistex.StatistexTest do
                  mode: [500, 450],
                  minimum: 450,
                  maximum: 600,
-                 outliers_bounds: {450, 575.0},
+                 outlier_bounds: {450, 575.0},
                  outliers: [600, 50, 50, 900],
                  sample_size: 7
                }
@@ -103,7 +103,7 @@ defmodule Statistex.StatistexTest do
                  mode: [500, 450],
                  minimum: 450,
                  maximum: 500,
-                 outliers_bounds: {450, 500},
+                 outlier_bounds: {450, 500},
                  outliers: [50, 50, 900, 600],
                  sample_size: 6
                }
