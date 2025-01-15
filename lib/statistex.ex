@@ -173,7 +173,7 @@ defmodule Statistex do
 
     {outliers, rest} = do_outliers(samples, outliers_bounds: outliers_bounds)
 
-    if exclude_outliers?(configuration) and not Enum.empty?(outliers) do
+    if exclude_outliers?(configuration) and Enum.any?(outliers) do
       configuration =
         configuration
         |> Keyword.put(:outliers_excluded, true)
