@@ -85,6 +85,8 @@ defmodule Statistex do
 
   @empty_list_error_message "Passed an empty list ([]) to calculate statistics from, please pass a list containing at least one number."
 
+  @first_quartile 25
+  @third_quartile 75
   @iqr_factor 1.5
 
   @doc """
@@ -625,16 +627,18 @@ defmodule Statistex do
 
   defp do_outliers_bounds(samples, options) do
     percentiles =
-      Keyword.get_lazy(options, :percentiles, fn -> Percentile.percentiles(samples, [25, 75]) end)
+      Keyword.get_lazy(options, :percentiles, fn ->
+        Percentile.percentiles(samples, [@first_quartile, @third_quartile])
+      end)
 
     minimum = Keyword.get_lazy(options, :minimum, fn -> hd(samples) end)
     maximum = Keyword.get_lazy(options, :maximum, fn -> List.last(samples) end)
 
-    p25 = get_percentile(samples, 25, percentiles)
-    p75 = get_percentile(samples, 75, percentiles)
-    iqr = p75 - p25
+    q1 = get_percentile(samples, @first_quartile, percentiles)
+    q3 = get_percentile(samples, @third_quartile, percentiles)
+    iqr = q1 - q3
 
-    {max(p25 - iqr * @iqr_factor, minimum), min(p75 + iqr * @iqr_factor, maximum)}
+    {max(q1 - iqr * @iqr_factor, minimum), min(q3 + iqr * @iqr_factor, maximum)}
   end
 
   @doc """
