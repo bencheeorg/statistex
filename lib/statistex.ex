@@ -636,7 +636,7 @@ defmodule Statistex do
 
     q1 = get_percentile(samples, @first_quartile, percentiles)
     q3 = get_percentile(samples, @third_quartile, percentiles)
-    iqr = q1 - q3
+    iqr = q3 - q1
 
     {max(q1 - iqr * @iqr_factor, minimum), min(q3 + iqr * @iqr_factor, maximum)}
   end
