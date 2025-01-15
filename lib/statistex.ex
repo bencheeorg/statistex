@@ -176,7 +176,6 @@ defmodule Statistex do
     if exclude_outliers?(configuration) and Enum.any?(outliers) do
       configuration =
         configuration
-        |> Keyword.put(:outliers_excluded, true)
         |> Keyword.update!(:exclude_outliers, fn
           :once -> :stop
           :repeatedly -> :repeatedly
