@@ -27,7 +27,7 @@ defmodule Statistex do
     :mode,
     :minimum,
     :maximum,
-    :outliers_bounds,
+    :outlier_bounds,
     :outliers,
     sample_size: 0
   ]
@@ -49,7 +49,7 @@ defmodule Statistex do
           mode: mode,
           minimum: number,
           maximum: number,
-          outliers_bounds: {number, number},
+          outlier_bounds: {number, number},
           outliers: [number],
           sample_size: non_neg_integer
         }
@@ -130,7 +130,7 @@ defmodule Statistex do
         sample_size:              9,
         total:                    4500,
         outliers: [],
-        outliers_bounds: {200, 900.0}
+        outlier_bounds: {200, 900.0}
       }
 
       iex> Statistex.statistics([])
@@ -151,7 +151,7 @@ defmodule Statistex do
         sample_size:              4,
         total:                    0,
         outliers: [],
-        outliers_bounds: {0.0, 0.0}
+        outlier_bounds: {0.0, 0.0}
       }
 
   """
@@ -170,10 +170,10 @@ defmodule Statistex do
 
     percentiles = calculate_percentiles(samples, configuration)
 
-    outliers_bounds =
-      do_outliers_bounds(samples, percentiles: percentiles, minimum: minimum, maximum: maximum)
+    outlier_bounds =
+      do_outlier_bounds(samples, percentiles: percentiles, minimum: minimum, maximum: maximum)
 
-    {outliers, rest} = do_outliers(samples, outliers_bounds: outliers_bounds)
+    {outliers, rest} = do_outliers(samples, outlier_bounds: outlier_bounds)
 
     if exclude_outliers?(configuration) and Enum.any?(outliers) do
       configuration =
@@ -212,7 +212,7 @@ defmodule Statistex do
         mode: mode(samples, frequency_distribution: frequency_distribution),
         minimum: minimum,
         maximum: maximum,
-        outliers_bounds: outliers_bounds,
+        outlier_bounds: outlier_bounds,
         outliers: outliers,
         sample_size: sample_size
       }
@@ -611,21 +611,21 @@ defmodule Statistex do
 
   ## Examples
 
-      iex> Statistex.outliers_bounds([3, 4, 5])
+      iex> Statistex.outlier_bounds([3, 4, 5])
       {3, 5}
 
-      iex> Statistex.outliers_bounds([1, 2, 6, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50])
+      iex> Statistex.outlier_bounds([1, 2, 6, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50])
       {22.5, 50}
 
-      iex> Statistex.outliers_bounds([50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 99, 99, 99])
+      iex> Statistex.outlier_bounds([50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 99, 99, 99])
       {50, 80.625}
   """
-  @spec outliers_bounds(samples, keyword) :: {lower :: number, upper :: number}
-  def outliers_bounds(samples, options \\ [])
-  def outliers_bounds([], _), do: raise(ArgumentError, @empty_list_error_message)
-  def outliers_bounds(samples, options), do: samples |> Enum.sort() |> do_outliers_bounds(options)
+  @spec outlier_bounds(samples, keyword) :: {lower :: number, upper :: number}
+  def outlier_bounds(samples, options \\ [])
+  def outlier_bounds([], _), do: raise(ArgumentError, @empty_list_error_message)
+  def outlier_bounds(samples, options), do: samples |> Enum.sort() |> do_outlier_bounds(options)
 
-  defp do_outliers_bounds(samples, options) do
+  defp do_outlier_bounds(samples, options) do
     percentiles =
       Keyword.get_lazy(options, :percentiles, fn ->
         Percentile.percentiles(samples, [@first_quartile, @third_quartile])
@@ -664,7 +664,7 @@ defmodule Statistex do
 
   defp do_outliers(samples, options) do
     {lower_bound, upper_bound} =
-      Keyword.get_lazy(options, :outliers_bounds, fn -> do_outliers_bounds(samples, options) end)
+      Keyword.get_lazy(options, :outlier_bounds, fn -> do_outlier_bounds(samples, options) end)
 
     {min, rest} = Enum.split_while(samples, fn sample -> sample < lower_bound end)
 
