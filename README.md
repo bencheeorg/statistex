@@ -126,4 +126,4 @@ A couple of (hopefully) helpful points:
 * `mix deps.get` to install dependencies
 * `mix test` to run tests
 * `mix dialyzer` to run dialyzer for type checking, might take a while on the first invocation (try building plts first with `mix dialyzer --plt`)
-* `mix credo --strict` to find code style problems
+* `mix credo` to find code style problems
