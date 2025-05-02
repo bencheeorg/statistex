@@ -87,6 +87,8 @@ defmodule Statistex do
 
   @first_quartile 25
   @third_quartile 75
+  # https://en.wikipedia.org/wiki/Interquartile_range#Outliers
+  # https://builtin.com/articles/1-5-iqr-rule
   @iqr_factor 1.5
 
   @doc """
