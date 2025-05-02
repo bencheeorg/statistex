@@ -96,18 +96,16 @@ defmodule Statistex do
 
   The statistics themselves are described in the individual samples that can be used to calculate individual values.
 
-  `Argumenterror` is raised if the given list is empty.
+  `ArgumentError` is raised if the given list is empty.
 
   ## Options
 
-  In a `percentiles` options arguments for the calculation of percentiles (see `percentiles/2`) can
+  With a `percentiles` options arguments for the calculation of percentiles (see `percentiles/2`) can
   be given. The percentiles 25th, 50th (median) and 75th are always calculated.
 
-  The option `exclude_outliers` can be set to `:once`, `:repeatedly` or `nil`,
-  `nil` is the default. If this option set to `:once` the outliers are excluded
-  and the statistics are calculated with the rest of the samples. The value
-  `:repeatedly` repeats the outlier exclusion until the samples no longer
-  contains outliers.
+  The option `exclude_outliers` can be set to `true`, `false`. Defaults to `false`.
+  If this option is set to `true` the outliers are excluded
+  and the statistics are calculated with the rest of the samples.
 
   ## Examples
 
@@ -167,62 +165,72 @@ defmodule Statistex do
   def statistics(samples, configuration) do
     samples = Enum.sort(samples)
 
+    # these statistics are required to do the outlier calculations
+    %{minimum: minimum, maximum: maximum, percentiles: percentiles} =
+      base_statistics(samples, configuration)
+
+    outlier_bounds =
+      do_outlier_bounds(samples, percentiles: percentiles, minimum: minimum, maximum: maximum)
+
+    # make sure rest remains sorted and so can be used again to ok results
+    {outliers, rest} = do_outliers(samples, outlier_bounds: outlier_bounds)
+
+    if exclude_outliers?(configuration) and Enum.any?(outliers) do
+      # figure out to avoid double sorting
+      rest = Enum.sort(rest)
+      # need to recalculate with the outliers removed
+      %{minimum: minimum, maximum: maximum, percentiles: percentiles} =
+        base_statistics(rest, configuration)
+
+      create_full_statistics(rest, minimum, maximum, percentiles, outliers, outlier_bounds)
+    else
+      create_full_statistics(samples, minimum, maximum, percentiles, outliers, outlier_bounds)
+    end
+  end
+
+  defp base_statistics(samples, configuration) do
     minimum = hd(samples)
     maximum = List.last(samples)
 
     percentiles = calculate_percentiles(samples, configuration)
 
-    outlier_bounds =
-      do_outlier_bounds(samples, percentiles: percentiles, minimum: minimum, maximum: maximum)
-
-    {outliers, rest} = do_outliers(samples, outlier_bounds: outlier_bounds)
-
-    if exclude_outliers?(configuration) and Enum.any?(outliers) do
-      configuration =
-        configuration
-        |> Keyword.update!(:exclude_outliers, fn
-          :once -> :stop
-          :repeatedly -> :repeatedly
-        end)
-        |> Keyword.update(:acc_outliers, outliers, fn list -> list ++ outliers end)
-
-      statistics(rest, configuration)
-    else
-      outliers = outliers ++ Keyword.get(configuration, :acc_outliers, [])
-
-      total = total(samples)
-      sample_size = length(samples)
-      average = average(samples, total: total, sample_size: sample_size)
-      variance = variance(samples, average: average, sample_size: sample_size)
-
-      frequency_distribution = frequency_distribution(samples)
-
-      standard_deviation = standard_deviation(samples, variance: variance)
-
-      standard_deviation_ratio =
-        standard_deviation_ratio(samples, standard_deviation: standard_deviation)
-
-      %__MODULE__{
-        total: total,
-        average: average,
-        variance: variance,
-        standard_deviation: standard_deviation,
-        standard_deviation_ratio: standard_deviation_ratio,
-        median: median(samples, percentiles: percentiles),
-        percentiles: percentiles,
-        frequency_distribution: frequency_distribution,
-        mode: mode(samples, frequency_distribution: frequency_distribution),
-        minimum: minimum,
-        maximum: maximum,
-        outlier_bounds: outlier_bounds,
-        outliers: outliers,
-        sample_size: sample_size
-      }
-    end
+    %{minimum: minimum, maximum: maximum, percentiles: percentiles}
   end
 
   defp exclude_outliers?(configuration) do
-    Keyword.get(configuration, :exclude_outliers) in [:once, :repeatedly]
+    Access.get(configuration, :exclude_outliers) == true
+  end
+
+  # maybe make argument a map
+  defp create_full_statistics(samples, minimum, maximum, percentiles, outliers, outlier_bounds) do
+    total = total(samples)
+    sample_size = length(samples)
+    average = average(samples, total: total, sample_size: sample_size)
+    variance = variance(samples, average: average, sample_size: sample_size)
+
+    frequency_distribution = frequency_distribution(samples)
+
+    standard_deviation = standard_deviation(samples, variance: variance)
+
+    standard_deviation_ratio =
+      standard_deviation_ratio(samples, standard_deviation: standard_deviation)
+
+    %__MODULE__{
+      total: total,
+      average: average,
+      variance: variance,
+      standard_deviation: standard_deviation,
+      standard_deviation_ratio: standard_deviation_ratio,
+      median: median(samples, percentiles: percentiles),
+      percentiles: percentiles,
+      frequency_distribution: frequency_distribution,
+      mode: mode(samples, frequency_distribution: frequency_distribution),
+      minimum: minimum,
+      maximum: maximum,
+      outlier_bounds: outlier_bounds,
+      outliers: outliers,
+      sample_size: sample_size
+    }
   end
 
   @doc """

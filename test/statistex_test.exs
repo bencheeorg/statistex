@@ -67,7 +67,7 @@ defmodule Statistex.StatistexTest do
 
     test "returns Statistex struct with excluded outliers once" do
       assert Statistex.statistics([50, 50, 450, 450, 450, 500, 500, 500, 600, 900],
-               exclude_outliers: :once
+               exclude_outliers: true
              ) ==
                %Statistex{
                  total: 3450,
@@ -81,31 +81,11 @@ defmodule Statistex.StatistexTest do
                  mode: [500, 450],
                  minimum: 450,
                  maximum: 600,
+                 # check with other sources what is right and what isn't, I fear we may have calculated outliers twice before
                  outlier_bounds: {450, 575.0},
+                 # Either sort them or make the test ignorant of order
                  outliers: [600, 50, 50, 900],
                  sample_size: 7
-               }
-    end
-
-    test "returns Statistex struct with excluded outliers repeatedly" do
-      assert Statistex.statistics([50, 50, 450, 450, 450, 500, 500, 500, 600, 900],
-               exclude_outliers: :repeatedly
-             ) ==
-               %Statistex{
-                 total: 2850,
-                 average: 475.0,
-                 variance: 750.0,
-                 standard_deviation: 27.386127875258307,
-                 standard_deviation_ratio: 0.05765500605317538,
-                 median: 475.0,
-                 percentiles: %{25 => 450.0, 50 => 475.0, 75 => 500.0},
-                 frequency_distribution: %{450 => 3, 500 => 3},
-                 mode: [500, 450],
-                 minimum: 450,
-                 maximum: 500,
-                 outlier_bounds: {450, 500},
-                 outliers: [50, 50, 900, 600],
-                 sample_size: 6
                }
     end
   end
