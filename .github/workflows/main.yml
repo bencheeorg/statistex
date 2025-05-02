@@ -24,8 +24,8 @@ jobs:
         # We're also further limited by the support the setup-beam action offers:
         # https://github.com/erlef/setup-beam?tab=readme-ov-file#compatibility-between-operating-system-and-erlangotp
         include:
-          - elixir_version: '1.11'
-            otp_version: '24.3'
+          # stream_data doesn't support elixir 1.11 and below
+          # https://github.com/whatyouhide/stream_data/blob/main/CHANGELOG.md#v110
           - elixir_version: '1.12'
             otp_version: '24.3'
           - elixir_version: '1.13'
