@@ -15,6 +15,8 @@ defmodule Statistex do
   alias Statistex.{Mode, Percentile}
   require Integer
 
+  import Statistex.Helper, only: [maybe_sort: 2]
+
   defstruct [
     :total,
     :average,
@@ -88,6 +90,7 @@ defmodule Statistex do
   @empty_list_error_message "Passed an empty list ([]) to calculate statistics from, please pass a list containing at least one number."
 
   @first_quartile 25
+  @median_percentile 50
   @third_quartile 75
   # https://en.wikipedia.org/wiki/Interquartile_range#Outliers
   # https://builtin.com/articles/1-5-iqr-rule
@@ -167,17 +170,21 @@ defmodule Statistex do
   end
 
   def statistics(samples, configuration) do
-    samples = Enum.sort(samples)
+    sorted_samples = Enum.sort(samples)
 
     # these statistics are required to do the outlier calculations
     %{minimum: minimum, maximum: maximum, percentiles: percentiles} =
-      base_statistics(samples, configuration)
+      base_statistics(sorted_samples, configuration)
 
     outlier_bounds =
-      do_outlier_bounds(samples, percentiles: percentiles, minimum: minimum, maximum: maximum)
+      do_outlier_bounds(sorted_samples,
+        percentiles: percentiles,
+        minimum: minimum,
+        maximum: maximum
+      )
 
     # make sure rest remains sorted and so can be used again to ok results
-    {outliers, rest} = do_outliers(samples, outlier_bounds: outlier_bounds)
+    {outliers, rest} = do_outliers(sorted_samples, outlier_bounds: outlier_bounds)
 
     if exclude_outliers?(configuration) and Enum.any?(outliers) do
       # figure out to avoid double sorting
@@ -188,15 +195,22 @@ defmodule Statistex do
 
       create_full_statistics(rest, minimum, maximum, percentiles, outliers, outlier_bounds)
     else
-      create_full_statistics(samples, minimum, maximum, percentiles, outliers, outlier_bounds)
+      create_full_statistics(
+        sorted_samples,
+        minimum,
+        maximum,
+        percentiles,
+        outliers,
+        outlier_bounds
+      )
     end
   end
 
-  defp base_statistics(samples, configuration) do
-    minimum = hd(samples)
-    maximum = List.last(samples)
+  defp base_statistics(sorted_samples, configuration) do
+    minimum = hd(sorted_samples)
+    maximum = List.last(sorted_samples)
 
-    percentiles = calculate_percentiles(samples, configuration)
+    percentiles = calculate_percentiles(sorted_samples, configuration)
 
     %{minimum: minimum, maximum: maximum, percentiles: percentiles}
   end
@@ -459,15 +473,18 @@ defmodule Statistex do
     end
   end
 
-  @median_percentile 50
-  defp calculate_percentiles(samples, configuration) do
+  defp calculate_percentiles(sorted_samples, configuration) do
     percentiles_configuration = Keyword.get(configuration, :percentiles, [])
 
     # median_percentile is manually added so that it can be used directly by median
     percentiles_configuration =
-      Enum.uniq([25, @median_percentile, 75 | percentiles_configuration])
+      Enum.uniq([
+        @first_quartile,
+        @median_percentile,
+        @third_quartile | percentiles_configuration
+      ])
 
-    Percentile.percentiles(samples, percentiles_configuration)
+    Percentile.percentiles(sorted_samples, percentiles_configuration, sorted: true)
   end
 
   @doc """
@@ -475,7 +492,7 @@ defmodule Statistex do
 
   Think of this as the
   value below which `percentile_rank` percent of the samples lie. For example,
-  if `Statistex.percentile(samples, 99)` == 123.45,
+  if `Statistex.percentile(samples, 99) == 123.45`,
   99% of samples are less than 123.45.
 
   Passing a number for `percentile_rank` calculates a single percentile.
@@ -517,9 +534,8 @@ defmodule Statistex do
   """
   @spec percentiles(samples, number | [number(), ...]) ::
           percentiles()
-  def percentiles(samples, percentiles) do
-    samples |> Enum.sort() |> Percentile.percentiles(percentiles)
-  end
+  defdelegate percentiles(samples, percentiles, options), to: Percentile
+  defdelegate percentiles(samples, percentiles), to: Percentile
 
   @doc """
   A map showing which sample occurs how often in the samples.
@@ -631,6 +647,9 @@ defmodule Statistex do
       iex> Statistex.outlier_bounds([3, 4, 5])
       {0.0, 8.0}
 
+      iex> Statistex.outlier_bounds([4, 5, 3])
+      {0.0, 8.0}
+
       iex> Statistex.outlier_bounds([1, 2, 6, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50])
       {22.5, 66.5}
 
@@ -640,19 +659,21 @@ defmodule Statistex do
   @spec outlier_bounds(samples, keyword) :: {lower :: number, upper :: number}
   def outlier_bounds(samples, options \\ [])
   def outlier_bounds([], _), do: raise(ArgumentError, @empty_list_error_message)
-  def outlier_bounds(samples, options), do: samples |> Enum.sort() |> do_outlier_bounds(options)
+  def outlier_bounds(samples, options), do: do_outlier_bounds(samples, options)
 
   defp do_outlier_bounds(samples, options) do
+    # double check do we need both get lazies here?
     percentiles =
       Keyword.get_lazy(options, :percentiles, fn ->
-        Percentile.percentiles(samples, [@first_quartile, @third_quartile])
+        Percentile.percentiles(samples, [@first_quartile, @third_quartile], options)
       end)
 
     q1 = get_percentile(samples, @first_quartile, percentiles)
     q3 = get_percentile(samples, @third_quartile, percentiles)
     iqr = q3 - q1
+    outlier_tolerance = iqr * @iqr_factor
 
-    {q1 - iqr * @iqr_factor, q3 + iqr * @iqr_factor}
+    {q1 - outlier_tolerance, q3 + outlier_tolerance}
   end
 
   @doc """
@@ -671,21 +692,21 @@ defmodule Statistex do
   """
   @spec outliers(samples, keyword) :: samples | []
   def outliers(samples, options \\ []) do
-    {outliers, _rest} = samples |> Enum.sort() |> do_outliers(options)
+    sorted_samples = maybe_sort(samples, options)
+
+    # maybe allow folks to get the same
+    {outliers, _rest} = do_outliers(sorted_samples, options)
 
     outliers
   end
 
-  defp do_outliers(samples, options) do
+  defp do_outliers(sorted_samples, options) do
     {lower_bound, upper_bound} =
-      Keyword.get_lazy(options, :outlier_bounds, fn -> do_outlier_bounds(samples, options) end)
+      Keyword.get_lazy(options, :outlier_bounds, fn ->
+        do_outlier_bounds(sorted_samples, options)
+      end)
 
-    {min, rest} = Enum.split_while(samples, fn sample -> sample < lower_bound end)
-
-    {max, rest} =
-      rest |> Enum.reverse() |> Enum.split_while(fn sample -> sample > upper_bound end)
-
-    {min ++ max, rest}
+    Enum.split_with(sorted_samples, fn sample -> sample < lower_bound || sample > upper_bound end)
   end
 
   defp get_percentile(samples, percentile, percentiles) do
