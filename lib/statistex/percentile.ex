@@ -1,22 +1,27 @@
 defmodule Statistex.Percentile do
   @moduledoc false
 
-  @spec percentiles(Statistex.samples(), number | [number, ...]) ::
+  import Statistex.Helper, only: [maybe_sort: 2]
+
+  @spec percentiles(Statistex.samples(), number | [number, ...], keyword()) ::
           Statistex.percentiles()
-  def percentiles([], _) do
+  def percentiles(samples, percentiles, options \\ [])
+
+  def percentiles([], _, _) do
     raise(
       ArgumentError,
       "Passed an empty list ([]) to calculate statistics from, please pass a list containing at least one number."
     )
   end
 
-  def percentiles(samples, percentile_ranks) do
+  def percentiles(samples, percentile_ranks, options) do
     number_of_samples = length(samples)
+    sorted_samples = maybe_sort(samples, options)
 
     percentile_ranks
     |> List.wrap()
     |> Enum.reduce(%{}, fn percentile_rank, acc ->
-      perc = percentile(samples, number_of_samples, percentile_rank)
+      perc = percentile(sorted_samples, number_of_samples, percentile_rank)
       Map.put(acc, percentile_rank, perc)
     end)
   end
