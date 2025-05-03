@@ -40,7 +40,8 @@ defmodule Statistex.StatistexTest do
                  mode: [500, 400],
                  minimum: 200,
                  maximum: 900,
-                 outlier_bounds: {100.0, 900.0},
+                 lower_outlier_bound: 100.0,
+                 upper_outlier_bound: 900.0,
                  outliers: [],
                  sample_size: 9
                }
@@ -60,7 +61,8 @@ defmodule Statistex.StatistexTest do
                  mode: [500, 450],
                  minimum: 50,
                  maximum: 900,
-                 outlier_bounds: {87.5, 787.5},
+                 lower_outlier_bound: 87.5,
+                 upper_outlier_bound: 787.5,
                  outliers: [50, 50, 900],
                  sample_size: 10
                }
@@ -85,7 +87,8 @@ defmodule Statistex.StatistexTest do
                percentiles: %{25 => 9.25, 50 => 10.0, 75 => 11.75},
                minimum: 9,
                maximum: 36,
-               outlier_bounds: {5.5, 15.5},
+               lower_outlier_bound: 5.5,
+               upper_outlier_bound: 15.5,
                outliers: [36]
              } = Statistex.statistics([9, 9, 10, 10, 10, 11, 12, 36], exclude_outliers: false)
     end
@@ -123,7 +126,8 @@ defmodule Statistex.StatistexTest do
                median: 70.0,
                percentiles: %{25 => 66.0, 50 => 70.0, 75 => 75.0},
                # report interquantile range?
-               outlier_bounds: {52.5, 88.5},
+               lower_outlier_bound: 52.5,
+               upper_outlier_bound: 88.5,
                outliers: [52, 89]
              } = Statistex.statistics(data, exclude_outliers: false)
     end
