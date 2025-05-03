@@ -162,6 +162,12 @@ defmodule Statistex.StatistexTest do
     defp assert_statistics_properties(samples) do
       stats = statistics(samples)
 
+      assert_basic_statistics(stats)
+      assert_mode_in_samples(stats, samples)
+      frequency_assertions(stats, samples)
+    end
+
+    defp assert_basic_statistics(stats) do
       assert stats.sample_size >= 1
       assert stats.minimum <= stats.maximum
 
@@ -176,8 +182,9 @@ defmodule Statistex.StatistexTest do
       assert stats.variance >= 0
       assert stats.standard_deviation >= 0
       assert stats.standard_deviation_ratio >= 0
+    end
 
-      # mode actually occurs in the samples
+    defp assert_mode_in_samples(stats, samples) do
       case stats.mode do
         [_ | _] ->
           Enum.each(stats.mode, fn mode ->
@@ -191,7 +198,9 @@ defmodule Statistex.StatistexTest do
         mode ->
           assert mode in samples
       end
+    end
 
+    defp frequency_assertions(stats, samples) do
       frequency_distribution = stats.frequency_distribution
       frequency_entry_count = map_size(frequency_distribution)
 
@@ -208,7 +217,7 @@ defmodule Statistex.StatistexTest do
       # all samples are in frequencies
       Enum.each(samples, fn sample -> assert Map.has_key?(frequency_distribution, sample) end)
 
-      # counts some up to sample_size
+      # counts of frequencies sum up to sample_size
       count_sum =
         frequency_distribution
         |> Map.values()
