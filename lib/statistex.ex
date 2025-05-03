@@ -27,7 +27,8 @@ defmodule Statistex do
     :mode,
     :minimum,
     :maximum,
-    :outlier_bounds,
+    :lower_outlier_bound,
+    :upper_outlier_bound,
     :outliers,
     sample_size: 0
   ]
@@ -49,7 +50,8 @@ defmodule Statistex do
           mode: mode,
           minimum: number,
           maximum: number,
-          outlier_bounds: {number, number},
+          lower_outlier_bound: number,
+          upper_outlier_bound: number,
           outliers: [number],
           sample_size: non_neg_integer
         }
@@ -130,7 +132,8 @@ defmodule Statistex do
         sample_size:              9,
         total:                    4500,
         outliers: [],
-        outlier_bounds: {100.0, 900.0}
+        lower_outlier_bound: 100.0,
+        upper_outlier_bound: 900.0
       }
 
       iex> Statistex.statistics([])
@@ -151,7 +154,8 @@ defmodule Statistex do
         sample_size:              4,
         total:                    0,
         outliers: [],
-        outlier_bounds: {0.0, 0.0}
+        lower_outlier_bound: 0.0,
+        upper_outlier_bound: 0.0,
       }
 
   """
@@ -215,6 +219,8 @@ defmodule Statistex do
     standard_deviation_ratio =
       standard_deviation_ratio(samples, standard_deviation: standard_deviation)
 
+    {lower_outlier_bound, upper_outlier_bound} = outlier_bounds
+
     %__MODULE__{
       total: total,
       average: average,
@@ -227,7 +233,8 @@ defmodule Statistex do
       mode: mode(samples, frequency_distribution: frequency_distribution),
       minimum: minimum,
       maximum: maximum,
-      outlier_bounds: outlier_bounds,
+      lower_outlier_bound: lower_outlier_bound,
+      upper_outlier_bound: upper_outlier_bound,
       outliers: outliers,
       sample_size: sample_size
     }
