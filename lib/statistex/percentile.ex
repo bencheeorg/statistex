@@ -20,9 +20,9 @@ defmodule Statistex.Percentile do
 
     percentile_ranks
     |> List.wrap()
-    |> Enum.reduce(%{}, fn percentile_rank, acc ->
+    |> Map.new(fn percentile_rank ->
       perc = percentile(sorted_samples, number_of_samples, percentile_rank)
-      Map.put(acc, percentile_rank, perc)
+      {percentile_rank, perc}
     end)
   end
 
