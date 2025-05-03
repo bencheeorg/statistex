@@ -169,10 +169,10 @@ defmodule Statistex do
     sorted_samples = maybe_sort(samples, configuration)
 
     percentiles = calculate_percentiles(sorted_samples, configuration)
-    outlier_bounds = do_outlier_bounds(sorted_samples, percentiles: percentiles)
+    outlier_bounds = outlier_bounds(sorted_samples, percentiles: percentiles)
 
     # rest remains sorted here/it's an important property
-    {outliers, rest} = do_outliers(sorted_samples, outlier_bounds: outlier_bounds)
+    {outliers, rest} = outliers(sorted_samples, outlier_bounds: outlier_bounds)
 
     if exclude_outliers?(configuration) and Enum.any?(outliers) do
       # need to recalculate with the outliers removed
@@ -671,9 +671,8 @@ defmodule Statistex do
   @spec outlier_bounds(samples, keyword) :: {lower :: number, upper :: number}
   def outlier_bounds(samples, options \\ [])
   def outlier_bounds([], _), do: raise(ArgumentError, @empty_list_error_message)
-  def outlier_bounds(samples, options), do: do_outlier_bounds(samples, options)
 
-  defp do_outlier_bounds(samples, options) do
+  def outlier_bounds(samples, options) do
     percentiles = Access.get(options, :percentiles, %{})
 
     percentiles =
@@ -695,9 +694,12 @@ defmodule Statistex do
   end
 
   @doc """
-  Returns all outliers for the given `samples`.
+  Returns all outliers for the given `samples`, along with the remaining values.
+
+  Returns: `{outliers, remaining_samples`} where `remaining_samples` has the outliers removed.
 
   ## Options
+  * `:outlier_bounds` - if you already have calculated the outlier bounds.
   * `:percentiles` - you can pass it a map of calculated percentiles (25th and 75th are needed).
   If it doesn't include them - it will still be computed.
   * `:sorted?`: indicating the samples you're passing in are already sorted. Defaults to `false`. Only set this,
@@ -706,29 +708,25 @@ defmodule Statistex do
   ## Examples
 
       iex> Statistex.outliers([3, 4, 5])
-      []
+      {[], [3, 4, 5]}
 
       iex> Statistex.outliers([1, 2, 6, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50])
-      [1, 2, 6]
+      {[1, 2, 6], [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50]}
+
+      iex> Statistex.outliers([50, 50, 1, 50, 50, 50, 50, 50, 2, 50, 50, 50, 50, 6])
+      {[1, 2, 6], [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50]}
 
       iex> Statistex.outliers([50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 99, 99, 99])
-      [99, 99, 99]
+      {[99, 99, 99], [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50]}
   """
-  @spec outliers(samples, keyword) :: samples | []
+  @spec outliers(samples, keyword) :: {samples | [], samples}
   def outliers(samples, options \\ []) do
-    # maybe allow folks to get the same
-    {outliers, _rest} = do_outliers(samples, options)
-
-    outliers
-  end
-
-  defp do_outliers(sorted_samples, options) do
     {lower_bound, upper_bound} =
       Keyword.get_lazy(options, :outlier_bounds, fn ->
-        do_outlier_bounds(sorted_samples, options)
+        outlier_bounds(samples, options)
       end)
 
-    Enum.split_with(sorted_samples, fn sample -> sample < lower_bound || sample > upper_bound end)
+    Enum.split_with(samples, fn sample -> sample < lower_bound || sample > upper_bound end)
   end
 
   @doc """
