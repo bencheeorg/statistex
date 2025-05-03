@@ -13,9 +13,10 @@ defmodule Statistex.StatistexTest do
   end
 
   describe ".outlier_bounds/2" do
+    # examples doubled up, maybe get rid of them?
     test "returns outlier bounds for samples without outliers" do
       assert Statistex.outlier_bounds([200, 400, 400, 400, 500, 500, 500, 700, 900]) ==
-               {200, 900.0}
+               {100.0, 900.0}
     end
 
     test "returns outlier bounds for samples with outliers" do
@@ -30,7 +31,7 @@ defmodule Statistex.StatistexTest do
                %Statistex{
                  total: 4500,
                  average: 500.0,
-                 variance: 40000.0,
+                 variance: 40_000.0,
                  standard_deviation: 200.0,
                  standard_deviation_ratio: 0.4,
                  median: 500.0,
@@ -39,7 +40,7 @@ defmodule Statistex.StatistexTest do
                  mode: [500, 400],
                  minimum: 200,
                  maximum: 900,
-                 outlier_bounds: {200, 900.0},
+                 outlier_bounds: {100.0, 900.0},
                  outliers: [],
                  sample_size: 9
                }
@@ -50,7 +51,7 @@ defmodule Statistex.StatistexTest do
                %Statistex{
                  total: 4450,
                  average: 445.0,
-                 variance: 61361.11111111111,
+                 variance: 61_361.11111111111,
                  standard_deviation: 247.71175004652304,
                  standard_deviation_ratio: 0.5566556180820742,
                  median: 475.0,
@@ -65,28 +66,77 @@ defmodule Statistex.StatistexTest do
                }
     end
 
-    test "returns Statistex struct with excluded outliers once" do
-      assert Statistex.statistics([50, 50, 450, 450, 450, 500, 500, 500, 600, 900],
-               exclude_outliers: true
-             ) ==
-               %Statistex{
-                 total: 3450,
-                 average: 492.85714285714283,
-                 variance: 2857.142857142857,
-                 standard_deviation: 53.452248382484875,
-                 standard_deviation_ratio: 0.1084538372977954,
-                 median: 500.0,
-                 percentiles: %{25 => 450.0, 50 => 500.0, 75 => 500.0},
-                 frequency_distribution: %{450 => 3, 500 => 3, 600 => 1},
-                 mode: [500, 450],
-                 minimum: 450,
-                 maximum: 600,
-                 # check with other sources what is right and what isn't, I fear we may have calculated outliers twice before
-                 outlier_bounds: {450, 575.0},
-                 # Either sort them or make the test ignorant of order
-                 outliers: [600, 50, 50, 900],
-                 sample_size: 7
-               }
+    # https://www.youtube.com/watch?v=rZJbj2I-_Ek
+    test "gets outliers from the sample right" do
+      # One could argue that this is controversial, R comes up with these results (by default):
+      # > summary(c(9, 9, 10, 10, 10, 11, 12, 36))
+      #  Min. 1st Qu.  Median    Mean 3rd Qu.    Max.
+      #  9.00    9.75   10.00   13.38   11.25   36.00
+      #
+      # R by default uses type 7 interpolation, we implemented type 6 interpolation though. Which
+      # R can also use:
+      # > quantile(c(9, 9, 10, 10, 10, 11, 12, 36), probs = c(0.25, 0.5, 0.75), type = 6)
+      # 25%   50%   75%
+      # 9.25 10.00 11.75
+      # Which is our result.
+
+      assert %Statistex{
+               median: 10.0,
+               percentiles: %{25 => 9.25, 50 => 10.0, 75 => 11.75},
+               minimum: 9,
+               maximum: 36,
+               outlier_bounds: {5.5, 15.5},
+               outliers: [36]
+             } = Statistex.statistics([9, 9, 10, 10, 10, 11, 12, 36], exclude_outliers: false)
+    end
+
+    # https://en.wikipedia.org/wiki/Box_plot#Example_with_outliers
+    test "another example with outliers" do
+      data = [
+        52,
+        57,
+        57,
+        58,
+        63,
+        66,
+        66,
+        67,
+        67,
+        68,
+        69,
+        70,
+        70,
+        70,
+        70,
+        72,
+        73,
+        75,
+        75,
+        76,
+        76,
+        78,
+        79,
+        89
+      ]
+
+      assert %Statistex{
+               median: 70.0,
+               percentiles: %{25 => 66.0, 50 => 70.0, 75 => 75.0},
+               # report interquantile range?
+               outlier_bounds: {52.5, 88.5},
+               outliers: [52, 89]
+             } = Statistex.statistics(data, exclude_outliers: false)
+    end
+
+    # https://en.wikipedia.org/wiki/Interquartile_range#Data_set_in_a_table
+    test "quartile example" do
+      assert %Statistex{
+               median: 87.0,
+               percentiles: %{25 => 31.0, 50 => 87.0, 75 => 119.0}
+             } =
+               Statistex.statistics([7, 7, 31, 31, 47, 75, 87, 115, 116, 119, 119, 155, 177],
+                 exclude_outliers: false
+               )
     end
   end
 
