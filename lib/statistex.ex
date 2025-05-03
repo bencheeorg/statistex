@@ -110,7 +110,7 @@ defmodule Statistex do
   * `:exclude_outliers` can be set to `true` or `false`. Defaults to `false`.
   If this option is set to `true` the outliers are excluded from the calculation
   of the statistics.
-  * `:sorted?`: indicating the samples you're passing in are already sorted. Only set this,
+  * `:sorted?`: indicating the samples you're passing in are already sorted. Defaults to `false`. Only set this,
   if they are truly sorted - otherwise your results will be wrong.
 
   ## Examples
@@ -188,7 +188,6 @@ defmodule Statistex do
     Access.get(configuration, :exclude_outliers) == true
   end
 
-  # maybe make argument a map
   defp create_full_statistics(sorted_samples, percentiles, outliers, outlier_bounds) do
     total = total(sorted_samples)
     sample_size = length(sorted_samples)
@@ -376,7 +375,7 @@ defmodule Statistex do
       iex> Statistex.standard_deviation([4, 9, 11, 12, 17, 5, 8, 12, 12])
       4.0
 
-      iex> Statistex.standard_deviation([4, 9, 11, 12, 17, 5, 8, 12, 12], variance: 16.0)
+      iex> Statistex.standard_deviation(:dontcare, variance: 16.0)
       4.0
 
       iex> Statistex.standard_deviation([42])
@@ -462,9 +461,8 @@ defmodule Statistex do
   @doc """
   Calculates the value at the `percentile_rank`-th percentile.
 
-  Think of this as the
-  value below which `percentile_rank` percent of the samples lie. For example,
-  if `Statistex.percentile(samples, 99) == 123.45`,
+  Think of this as the value below which `percentile_rank` percent of the samples lie.
+  For example, if `Statistex.percentile(samples, 99) == 123.45`,
   99% of samples are less than 123.45.
 
   Passing a number for `percentile_rank` calculates a single percentile.
@@ -478,9 +476,17 @@ defmodule Statistex do
 
   `Argumenterror` is raised if the given list is empty.
 
+  ## Options
+
+  * `:sorted?`: indicating the samples you're passing in are already sorted. Defaults to `false`. Only set this,
+  if they are truly sorted - otherwise your results will be wrong.
+
   ## Examples
 
       iex> Statistex.percentiles([5, 3, 4, 5, 1, 3, 1, 3], 12.5)
+      %{12.5 => 1.0}
+
+      iex> Statistex.percentiles([1, 1, 3, 3, 3, 4, 5, 5], 12.5, sorted?: true)
       %{12.5 => 1.0}
 
       iex> Statistex.percentiles([5, 3, 4, 5, 1, 3, 1, 3], [50])
@@ -581,9 +587,24 @@ defmodule Statistex do
 
   `Argumenterror` is raised if the given list is empty.
 
+  ## Options
+  * `:percentiles` - you can pass it a map of calculated percentiles to fetch the median from (it is the 50th percentile).
+  If it doesn't include the median/50th percentile - it will still be computed.
+  * `:sorted?`: indicating the samples you're passing in are already sorted. Defaults to `false`. Only set this,
+  if they are truly sorted - otherwise your results will be wrong. Sorting only occurs when percentiles aren't provided.
+
   ## Examples
 
       iex> Statistex.median([1, 3, 4, 6, 7, 8, 9])
+      6.0
+
+      iex> Statistex.median([1, 3, 4, 6, 7, 8, 9], percentiles: %{50 => 6.0})
+      6.0
+
+      iex> Statistex.median([1, 3, 4, 6, 7, 8, 9], percentiles: %{25 => 3.0})
+      6.0
+
+      iex> Statistex.median([1, 3, 4, 6, 7, 8, 9], sorted?: true)
       6.0
 
       iex> Statistex.median([1, 2, 3, 4, 5, 6, 8, 9])
@@ -600,12 +621,19 @@ defmodule Statistex do
   def median([], _), do: raise(ArgumentError, @empty_list_error_message)
 
   def median(samples, options) do
-    percentiles =
-      Keyword.get_lazy(options, :percentiles, fn ->
-        Percentile.percentiles(samples, @median_percentile)
-      end)
+    percentiles = Access.get(options, :percentiles, %{})
 
-    get_percentile(samples, @median_percentile, percentiles)
+    percentiles =
+      case percentiles do
+        %{@median_percentile => _} ->
+          percentiles
+
+        # missing necessary keys
+        %{} ->
+          Percentile.percentiles(samples, @median_percentile, options)
+      end
+
+    Map.fetch!(percentiles, @median_percentile)
   end
 
   @doc """
@@ -614,12 +642,24 @@ defmodule Statistex do
   Any sample that is `<` as the lower bound and any sample `>` are outliers of
   the given `samples`.
 
+  ## Options
+  * `:percentiles` - you can pass it a map of calculated percentiles (25th and 75th are needed).
+  If it doesn't include them - it will still be computed.
+  * `:sorted?`: indicating the samples you're passing in are already sorted. Defaults to `false`. Only set this,
+  if they are truly sorted - otherwise your results will be wrong. Sorting only occurs when percentiles aren't provided.
+
   ## Examples
 
       iex> Statistex.outlier_bounds([3, 4, 5])
       {0.0, 8.0}
 
       iex> Statistex.outlier_bounds([4, 5, 3])
+      {0.0, 8.0}
+
+      iex> Statistex.outlier_bounds([3, 4, 5], sorted?: true)
+      {0.0, 8.0}
+
+      iex> Statistex.outlier_bounds([3, 4, 5], percentiles: %{25 => 3.0, 75 => 5.0})
       {0.0, 8.0}
 
       iex> Statistex.outlier_bounds([1, 2, 6, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50])
@@ -634,14 +674,20 @@ defmodule Statistex do
   def outlier_bounds(samples, options), do: do_outlier_bounds(samples, options)
 
   defp do_outlier_bounds(samples, options) do
-    # double check do we need both get lazies here?
-    percentiles =
-      Keyword.get_lazy(options, :percentiles, fn ->
-        Percentile.percentiles(samples, [@first_quartile, @third_quartile], options)
-      end)
+    percentiles = Access.get(options, :percentiles, %{})
 
-    q1 = get_percentile(samples, @first_quartile, percentiles)
-    q3 = get_percentile(samples, @third_quartile, percentiles)
+    percentiles =
+      case percentiles do
+        %{@first_quartile => _, @third_quartile => _} ->
+          percentiles
+
+        # missing necessary keys
+        %{} ->
+          Percentile.percentiles(samples, [@first_quartile, @third_quartile], options)
+      end
+
+    q1 = Map.fetch!(percentiles, @first_quartile)
+    q3 = Map.fetch!(percentiles, @third_quartile)
     iqr = q3 - q1
     outlier_tolerance = iqr * @iqr_factor
 
@@ -650,6 +696,12 @@ defmodule Statistex do
 
   @doc """
   Returns all outliers for the given `samples`.
+
+  ## Options
+  * `:percentiles` - you can pass it a map of calculated percentiles (25th and 75th are needed).
+  If it doesn't include them - it will still be computed.
+  * `:sorted?`: indicating the samples you're passing in are already sorted. Defaults to `false`. Only set this,
+  if they are truly sorted - otherwise your results will be wrong. Sorting only occurs when percentiles aren't provided.
 
   ## Examples
 
@@ -664,10 +716,8 @@ defmodule Statistex do
   """
   @spec outliers(samples, keyword) :: samples | []
   def outliers(samples, options \\ []) do
-    sorted_samples = maybe_sort(samples, options)
-
     # maybe allow folks to get the same
-    {outliers, _rest} = do_outliers(sorted_samples, options)
+    {outliers, _rest} = do_outliers(samples, options)
 
     outliers
   end
@@ -679,12 +729,6 @@ defmodule Statistex do
       end)
 
     Enum.split_with(sorted_samples, fn sample -> sample < lower_bound || sample > upper_bound end)
-  end
-
-  defp get_percentile(samples, percentile, percentiles) do
-    Map.get_lazy(percentiles, percentile, fn ->
-      samples |> Percentile.percentiles(percentile) |> Map.fetch!(percentile)
-    end)
   end
 
   @doc """
