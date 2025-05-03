@@ -164,7 +164,8 @@ defmodule Statistex.StatistexTest do
 
       assert_basic_statistics(stats)
       assert_mode_in_samples(stats, samples)
-      frequency_assertions(stats, samples)
+      assert_frequencies(stats, samples)
+      assert_bounds(stats, samples)
 
       # shuffling values around shouldn't change the results
       shuffled_stats = samples |> Enum.shuffle() |> statistics()
@@ -182,6 +183,9 @@ defmodule Statistex.StatistexTest do
       assert stats.median <= stats.maximum
 
       assert stats.median == stats.percentiles[50]
+
+      assert stats.median >= stats.percentiles[25]
+      assert stats.percentiles[75] >= stats.median
 
       assert stats.variance >= 0
       assert stats.standard_deviation >= 0
@@ -204,7 +208,7 @@ defmodule Statistex.StatistexTest do
       end
     end
 
-    defp frequency_assertions(stats, samples) do
+    defp assert_frequencies(stats, samples) do
       frequency_distribution = stats.frequency_distribution
       frequency_entry_count = map_size(frequency_distribution)
 
@@ -228,6 +232,16 @@ defmodule Statistex.StatistexTest do
         |> Enum.sum()
 
       assert count_sum == stats.sample_size
+    end
+
+    defp assert_bounds(stats, samples) do
+      Enum.each(stats.outliers, fn outlier ->
+        assert outlier in samples
+        assert outlier < stats.lower_outlier_bound || outlier > stats.upper_outlier_bound
+      end)
+
+      assert stats.lower_outlier_bound <= stats.percentiles[25]
+      assert stats.upper_outlier_bound >= stats.percentiles[75]
     end
 
     defp big_list_big_floats do
