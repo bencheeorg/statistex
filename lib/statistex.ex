@@ -105,12 +105,13 @@ defmodule Statistex do
 
   ## Options
 
-  * `percentiles`: percentiles to calculate (see `percentiles/2`).
+  * `:percentiles`: percentiles to calculate (see `percentiles/2`).
   The percentiles 25th, 50th (median) and 75th are always calculated.
-
-  * `exclude_outliers` can be set to `true` or `false`. Defaults to `false`.
+  * `:exclude_outliers` can be set to `true` or `false`. Defaults to `false`.
   If this option is set to `true` the outliers are excluded from the calculation
   of the statistics.
+  * `:sorted?`: indicating the samples you're passing in are already sorted. Only set this,
+  if they are truly sorted - otherwise your results will be wrong.
 
   ## Examples
 
@@ -165,49 +166,22 @@ defmodule Statistex do
   end
 
   def statistics(samples, configuration) do
-    sorted_samples = Enum.sort(samples)
+    sorted_samples = maybe_sort(samples, configuration)
 
-    # these statistics are required to do the outlier calculations
-    %{minimum: minimum, maximum: maximum, percentiles: percentiles} =
-      base_statistics(sorted_samples, configuration)
+    percentiles = calculate_percentiles(sorted_samples, configuration)
+    outlier_bounds = do_outlier_bounds(sorted_samples, percentiles: percentiles)
 
-    outlier_bounds =
-      do_outlier_bounds(sorted_samples,
-        percentiles: percentiles,
-        minimum: minimum,
-        maximum: maximum
-      )
-
-    # make sure rest remains sorted and so can be used again to ok results
+    # rest remains sorted here/it's an important property
     {outliers, rest} = do_outliers(sorted_samples, outlier_bounds: outlier_bounds)
 
     if exclude_outliers?(configuration) and Enum.any?(outliers) do
-      # figure out to avoid double sorting
-      rest = Enum.sort(rest)
       # need to recalculate with the outliers removed
-      %{minimum: minimum, maximum: maximum, percentiles: percentiles} =
-        base_statistics(rest, configuration)
+      percentiles = calculate_percentiles(rest, configuration)
 
-      create_full_statistics(rest, minimum, maximum, percentiles, outliers, outlier_bounds)
+      create_full_statistics(rest, percentiles, outliers, outlier_bounds)
     else
-      create_full_statistics(
-        sorted_samples,
-        minimum,
-        maximum,
-        percentiles,
-        outliers,
-        outlier_bounds
-      )
+      create_full_statistics(sorted_samples, percentiles, outliers, outlier_bounds)
     end
-  end
-
-  defp base_statistics(sorted_samples, configuration) do
-    minimum = hd(sorted_samples)
-    maximum = List.last(sorted_samples)
-
-    percentiles = calculate_percentiles(sorted_samples, configuration)
-
-    %{minimum: minimum, maximum: maximum, percentiles: percentiles}
   end
 
   defp exclude_outliers?(configuration) do
@@ -215,18 +189,21 @@ defmodule Statistex do
   end
 
   # maybe make argument a map
-  defp create_full_statistics(samples, minimum, maximum, percentiles, outliers, outlier_bounds) do
-    total = total(samples)
-    sample_size = length(samples)
-    average = average(samples, total: total, sample_size: sample_size)
-    variance = variance(samples, average: average, sample_size: sample_size)
+  defp create_full_statistics(sorted_samples, percentiles, outliers, outlier_bounds) do
+    total = total(sorted_samples)
+    sample_size = length(sorted_samples)
+    minimum = hd(sorted_samples)
+    maximum = List.last(sorted_samples)
 
-    frequency_distribution = frequency_distribution(samples)
+    average = average(sorted_samples, total: total, sample_size: sample_size)
+    variance = variance(sorted_samples, average: average, sample_size: sample_size)
 
-    standard_deviation = standard_deviation(samples, variance: variance)
+    frequency_distribution = frequency_distribution(sorted_samples)
+
+    standard_deviation = standard_deviation(sorted_samples, variance: variance)
 
     standard_deviation_ratio =
-      standard_deviation_ratio(samples, standard_deviation: standard_deviation)
+      standard_deviation_ratio(sorted_samples, standard_deviation: standard_deviation)
 
     {lower_outlier_bound, upper_outlier_bound} = outlier_bounds
 
@@ -236,10 +213,10 @@ defmodule Statistex do
       variance: variance,
       standard_deviation: standard_deviation,
       standard_deviation_ratio: standard_deviation_ratio,
-      median: median(samples, percentiles: percentiles),
+      median: median(sorted_samples, percentiles: percentiles),
       percentiles: percentiles,
       frequency_distribution: frequency_distribution,
-      mode: mode(samples, frequency_distribution: frequency_distribution),
+      mode: mode(sorted_samples, frequency_distribution: frequency_distribution),
       minimum: minimum,
       maximum: maximum,
       lower_outlier_bound: lower_outlier_bound,
