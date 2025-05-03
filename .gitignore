@@ -10,3 +10,6 @@ docs
 
 # Don't feel like tracking that gives me what I want any more :)
 .tool-versions
+
+# dialyzer
+/tools
