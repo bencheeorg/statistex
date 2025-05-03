@@ -11,7 +11,8 @@ defmodule Statistex.StatistexTest do
       assert Statistex.median([1, 2, 3, 4, 5, 6, 8, 9], percentiles: %{}) == 4.5
     end
 
-    # what an odd test to write, huh? Well that way we can see we trust the `sorted?` value not resorting.
+    # what an odd test to write, huh? Well that way we can see we trust the `sorted?`
+    # value not resorting.
     test "if told that the list is sorted while it isn't the result will be wrong" do
       assert Statistex.median([1, 6, 4, 3, 5, 9, 2, 8], sorted?: true) != 4.5
     end
