@@ -165,6 +165,10 @@ defmodule Statistex.StatistexTest do
       assert_basic_statistics(stats)
       assert_mode_in_samples(stats, samples)
       frequency_assertions(stats, samples)
+
+      # shuffling values around shouldn't change the results
+      shuffled_stats = samples |> Enum.shuffle() |> statistics()
+      assert stats == shuffled_stats
     end
 
     defp assert_basic_statistics(stats) do
