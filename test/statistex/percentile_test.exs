@@ -4,20 +4,20 @@ defmodule Statistex.PercentileTest do
 
   doctest Statistex.Percentile
 
-  @nist_sample_data Enum.sort([
-                      95.1772,
-                      95.1567,
-                      95.1937,
-                      95.1959,
-                      95.1442,
-                      95.0610,
-                      95.1591,
-                      95.1195,
-                      95.1065,
-                      95.0925,
-                      95.1990,
-                      95.1682
-                    ])
+  @nist_sample_data [
+    95.1772,
+    95.1567,
+    95.1937,
+    95.1959,
+    95.1442,
+    95.0610,
+    95.1591,
+    95.1195,
+    95.1065,
+    95.0925,
+    95.1990,
+    95.1682
+  ]
 
   # Test data from:
   #   http://www.itl.nist.gov/div898/handbook/prc/section2/prc262.htm
@@ -49,7 +49,7 @@ defmodule Statistex.PercentileTest do
   end
 
   describe "a list of two elements" do
-    @samples [200, 300]
+    @samples [300, 200]
     test "1st percentile (small sample size simply picks first element)" do
       %{1 => result} = percentiles(@samples, [1])
       assert result == 200.0
@@ -67,7 +67,7 @@ defmodule Statistex.PercentileTest do
   end
 
   describe "seemingly problematic 2 element list [9, 1]" do
-    @samples [1, 9]
+    @samples [9, 1]
 
     percentiles = %{
       25 => 1,
@@ -88,7 +88,7 @@ defmodule Statistex.PercentileTest do
   end
 
   describe "a list of three elements" do
-    @samples [100, 200, 300]
+    @samples [100, 300, 200]
     test "1st percentile (small sample size simply picks first element)" do
       %{1 => result} = percentiles(@samples, [1])
       assert result == 100.0
