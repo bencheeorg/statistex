@@ -642,6 +642,8 @@ defmodule Statistex do
   Any sample that is `<` as the lower bound and any sample `>` are outliers of
   the given `samples`.
 
+  List passed needs to be non empty, otherwise an `ArgumentError` is raised.
+
   ## Options
   * `:percentiles` - you can pass it a map of calculated percentiles (25th and 75th are needed).
   If it doesn't include them - it will still be computed.
@@ -667,6 +669,9 @@ defmodule Statistex do
 
       iex> Statistex.outlier_bounds([50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 99, 99, 99])
       {31.625, 80.625}
+
+      iex> Statistex.outlier_bounds([])
+      ** (ArgumentError) Passed an empty list ([]) to calculate statistics from, please pass a list containing at least one number.
   """
   @spec outlier_bounds(samples, keyword) :: {lower :: number, upper :: number}
   def outlier_bounds(samples, options \\ [])
