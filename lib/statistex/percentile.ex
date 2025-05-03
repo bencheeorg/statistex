@@ -62,11 +62,20 @@ defmodule Statistex.Percentile do
   # particular sample). Of the 9 main strategies, (types 1-9), types 6, 7, and 8
   # are generally acceptable and give similar results.
   #
+  # R uses type 7, but you can change the strategies used in R with arguments.
+  #
+  # > quantile(c(9, 9, 10, 10, 10, 11, 12, 36), probs = c(0.25, 0.5, 0.75), type = 6)
+  #   25%   50%   75%
+  #  9.25 10.00 11.75
+  # > quantile(c(9, 9, 10, 10, 10, 11, 12, 36), probs = c(0.25, 0.5, 0.75), type = 7)
+  #   25%   50%   75%
+  #  9.75 10.00 11.25
+  #
   # For more information on interpolation strategies, see:
   # - https://stat.ethz.ch/R-manual/R-devel/library/stats/html/quantile.html
   # - http://www.itl.nist.gov/div898/handbook/prc/section2/prc262.htm
   defp interpolation_value(lower_bound, upper_bound, rank) do
-    # in our source rank is k, and interpolation_weitgh is d
+    # in our source rank is k, and interpolation_weight is d
     interpolation_weight = rank - trunc(rank)
     interpolation_weight * (upper_bound - lower_bound)
   end

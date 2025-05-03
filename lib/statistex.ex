@@ -130,7 +130,7 @@ defmodule Statistex do
         sample_size:              9,
         total:                    4500,
         outliers: [],
-        outlier_bounds: {200, 900.0}
+        outlier_bounds: {100.0, 900.0}
       }
 
       iex> Statistex.statistics([])
@@ -622,13 +622,13 @@ defmodule Statistex do
   ## Examples
 
       iex> Statistex.outlier_bounds([3, 4, 5])
-      {3, 5}
+      {0.0, 8.0}
 
       iex> Statistex.outlier_bounds([1, 2, 6, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50])
-      {22.5, 50}
+      {22.5, 66.5}
 
       iex> Statistex.outlier_bounds([50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 99, 99, 99])
-      {50, 80.625}
+      {31.625, 80.625}
   """
   @spec outlier_bounds(samples, keyword) :: {lower :: number, upper :: number}
   def outlier_bounds(samples, options \\ [])
@@ -641,14 +641,11 @@ defmodule Statistex do
         Percentile.percentiles(samples, [@first_quartile, @third_quartile])
       end)
 
-    minimum = Keyword.get_lazy(options, :minimum, fn -> hd(samples) end)
-    maximum = Keyword.get_lazy(options, :maximum, fn -> List.last(samples) end)
-
     q1 = get_percentile(samples, @first_quartile, percentiles)
     q3 = get_percentile(samples, @third_quartile, percentiles)
     iqr = q3 - q1
 
-    {max(q1 - iqr * @iqr_factor, minimum), min(q3 + iqr * @iqr_factor, maximum)}
+    {q1 - iqr * @iqr_factor, q3 + iqr * @iqr_factor}
   end
 
   @doc """
