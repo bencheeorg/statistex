@@ -105,61 +105,56 @@ defmodule Statistex do
 
   ## Options
 
-  With a `percentiles` options arguments for the calculation of percentiles (see `percentiles/2`) can
-  be given. The percentiles 25th, 50th (median) and 75th are always calculated.
+  * `percentiles`: percentiles to calculate (see `percentiles/2`).
+  The percentiles 25th, 50th (median) and 75th are always calculated.
 
-  The option `exclude_outliers` can be set to `true`, `false`. Defaults to `false`.
-  If this option is set to `true` the outliers are excluded
-  and the statistics are calculated with the rest of the samples.
+  * `exclude_outliers` can be set to `true` or `false`. Defaults to `false`.
+  If this option is set to `true` the outliers are excluded from the calculation
+  of the statistics.
 
   ## Examples
 
-      iex> Statistex.statistics([200, 400, 400, 400, 500, 500, 500, 700, 900])
+      iex> Statistex.statistics([50, 50, 450, 450, 450, 500, 500, 500, 600, 900])
       %Statistex{
-        average:                  500.0,
-        variance:                 40_000.0,
-        standard_deviation:       200.0,
-        standard_deviation_ratio: 0.4,
-        median:                   500.0,
-        percentiles:              %{25 => 400.0, 50 => 500.0, 75 => 600.0},
-        frequency_distribution:   %{
-          200 => 1,
-          400 => 3,
-          500 => 3,
-          700 => 1,
-          900 => 1
-        },
-        mode:                     [500, 400],
-        minimum:                  200,
-        maximum:                  900,
-        sample_size:              9,
-        total:                    4500,
-        outliers: [],
-        lower_outlier_bound: 100.0,
-        upper_outlier_bound: 900.0
+        total: 4450,
+        average: 445.0,
+        variance: 61_361.11111111111,
+        standard_deviation: 247.71175004652304,
+        standard_deviation_ratio: 0.5566556180820742,
+        median: 475.0,
+        percentiles: %{25 => 350.0, 50 => 475.0, 75 => 525.0},
+        frequency_distribution: %{50 => 2, 450 => 3, 500 => 3, 600 => 1, 900 => 1},
+        mode: [500, 450],
+        minimum: 50,
+        maximum: 900,
+        lower_outlier_bound: 87.5,
+        upper_outlier_bound: 787.5,
+        outliers: [50, 50, 900],
+        sample_size: 10
+      }
+
+      # excluding outliers changes the results
+      iex> Statistex.statistics([50, 50, 450, 450, 450, 500, 500, 500, 600, 900], exclude_outliers: true)
+      %Statistex{
+        total: 3450,
+        average: 492.85714285714283,
+        variance: 2857.142857142857,
+        standard_deviation: 53.452248382484875,
+        standard_deviation_ratio: 0.1084538372977954,
+        median: 500.0,
+        percentiles: %{25 => 450.0, 50 => 500.0, 75 => 500.0},
+        frequency_distribution: %{450 => 3, 500 => 3, 600 => 1},
+        mode: [500, 450],
+        maximum: 600,
+        minimum: 450,
+        lower_outlier_bound: 87.5,
+        upper_outlier_bound: 787.5,
+        outliers: [50, 50, 900],
+        sample_size: 7
       }
 
       iex> Statistex.statistics([])
       ** (ArgumentError) Passed an empty list ([]) to calculate statistics from, please pass a list containing at least one number.
-
-      iex> Statistex.statistics([0, 0, 0, 0])
-      %Statistex{
-        average:                  0.0,
-        variance:                 0.0,
-        standard_deviation:       0.0,
-        standard_deviation_ratio: 0.0,
-        median:                   0.0,
-        percentiles:              %{25 => 0.0, 50 => 0.0, 75 => 0.0},
-        frequency_distribution:   %{0 => 4},
-        mode:                     0,
-        minimum:                  0,
-        maximum:                  0,
-        sample_size:              4,
-        total:                    0,
-        outliers: [],
-        lower_outlier_bound: 0.0,
-        upper_outlier_bound: 0.0,
-      }
 
   """
   @spec statistics(samples, configuration) :: t()

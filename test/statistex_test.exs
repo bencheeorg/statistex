@@ -26,6 +26,26 @@ defmodule Statistex.StatistexTest do
   end
 
   describe ".statistics/2" do
+    test "all 0 values do what you think they would" do
+      assert Statistex.statistics([0, 0, 0, 0]) == %Statistex{
+               average: 0.0,
+               variance: 0.0,
+               standard_deviation: 0.0,
+               standard_deviation_ratio: 0.0,
+               median: 0.0,
+               percentiles: %{25 => 0.0, 50 => 0.0, 75 => 0.0},
+               frequency_distribution: %{0 => 4},
+               mode: 0,
+               minimum: 0,
+               maximum: 0,
+               sample_size: 4,
+               total: 0,
+               outliers: [],
+               lower_outlier_bound: 0.0,
+               upper_outlier_bound: 0.0
+             }
+    end
+
     test "returns Statistex struct without outliers" do
       assert Statistex.statistics([200, 400, 400, 400, 500, 500, 500, 700, 900]) ==
                %Statistex{
@@ -165,7 +185,7 @@ defmodule Statistex.StatistexTest do
       assert_basic_statistics(stats)
       assert_mode_in_samples(stats, samples)
       assert_frequencies(stats, samples)
-      assert_bounds(stats, samples)
+      assert_bounds_and_outliers(stats, samples)
 
       # shuffling values around shouldn't change the results
       shuffled_stats = samples |> Enum.shuffle() |> statistics()
@@ -234,7 +254,7 @@ defmodule Statistex.StatistexTest do
       assert count_sum == stats.sample_size
     end
 
-    defp assert_bounds(stats, samples) do
+    defp assert_bounds_and_outliers(stats, samples) do
       Enum.each(stats.outliers, fn outlier ->
         assert outlier in samples
         assert outlier < stats.lower_outlier_bound || outlier > stats.upper_outlier_bound
@@ -242,6 +262,27 @@ defmodule Statistex.StatistexTest do
 
       assert stats.lower_outlier_bound <= stats.percentiles[25]
       assert stats.upper_outlier_bound >= stats.percentiles[75]
+
+      non_outlier_statistics = Statistex.statistics(samples, exclude_outliers: true)
+      # outlier or not, outliers or bounds aren't changed
+      assert non_outlier_statistics.outliers == stats.outliers
+      assert non_outlier_statistics.lower_outlier_bound == stats.lower_outlier_bound
+      assert non_outlier_statistics.upper_outlier_bound == stats.upper_outlier_bound
+
+      if Enum.empty?(stats.outliers) do
+        # no outliers? Then excluding outliers shouldn't change anything!
+        assert non_outlier_statistics == stats
+      else
+        assert non_outlier_statistics.sample_size < stats.sample_size
+        assert non_outlier_statistics.standard_deviation < stats.standard_deviation
+        # property may not hold vor the std_dev ratio seemingly as values may be skewed too much
+
+        frequency_occurrences = Map.keys(non_outlier_statistics.percentiles)
+
+        # outliers don't make an appearances in the frequency occurrences
+        assert MapSet.intersection(MapSet.new(stats.outliers), MapSet.new(frequency_occurrences)) ==
+                 MapSet.new([])
+      end
     end
 
     defp big_list_big_floats do
