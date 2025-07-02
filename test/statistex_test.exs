@@ -35,6 +35,7 @@ defmodule Statistex.StatistexTest do
     test "all 0 values do what you think they would" do
       assert Statistex.statistics([0, 0, 0, 0]) == %Statistex{
                average: 0.0,
+               m2: 0.0,
                variance: 0.0,
                standard_deviation: 0.0,
                standard_deviation_ratio: 0.0,
@@ -57,6 +58,7 @@ defmodule Statistex.StatistexTest do
                %Statistex{
                  total: 4500,
                  average: 500.0,
+                 m2: 320_000.0,
                  variance: 40_000.0,
                  standard_deviation: 200.0,
                  standard_deviation_ratio: 0.4,
@@ -78,6 +80,7 @@ defmodule Statistex.StatistexTest do
                %Statistex{
                  total: 4450,
                  average: 445.0,
+                 m2: 552_250.0,
                  variance: 61_361.11111111111,
                  standard_deviation: 247.71175004652304,
                  standard_deviation_ratio: 0.5566556180820742,
@@ -167,6 +170,31 @@ defmodule Statistex.StatistexTest do
                Statistex.statistics([7, 7, 31, 31, 47, 75, 87, 115, 116, 119, 119, 155, 177],
                  exclude_outliers: false
                )
+    end
+  end
+
+  describe ".m2/2" do
+    test "ensure manual on-line variance calculation matches normal API" do
+      samples = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+      {sample_size, total, m2} =
+        Enum.reduce(samples, {0, 0, 0.0}, fn sample, {count, total, m2} ->
+          m2 = Statistex.m2(sample, sample_size: count, m2: m2, total: total)
+          count = count + 1
+          total = total + sample
+          {count, total, m2}
+        end)
+
+      assert sample_size == Statistex.sample_size(samples)
+      assert total == Statistex.total(samples)
+      assert m2 == Statistex.m2(samples)
+
+      variance = Statistex.variance(:ignored, sample_size: sample_size, m2: m2)
+
+      assert variance == Statistex.variance(samples)
+
+      assert Statistex.standard_deviation(samples) ==
+               Statistex.standard_deviation(:ignored, variance: variance)
     end
   end
 

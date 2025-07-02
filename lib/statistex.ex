@@ -20,6 +20,7 @@ defmodule Statistex do
   defstruct [
     :total,
     :average,
+    :m2,
     :variance,
     :standard_deviation,
     :standard_deviation_ratio,
@@ -43,6 +44,7 @@ defmodule Statistex do
   @type t :: %__MODULE__{
           total: number,
           average: float,
+          m2: float,
           variance: float,
           standard_deviation: float,
           standard_deviation_ratio: float,
@@ -119,6 +121,7 @@ defmodule Statistex do
       %Statistex{
         total: 4450,
         average: 445.0,
+        m2: 552250.0,
         variance: 61_361.11111111111,
         standard_deviation: 247.71175004652304,
         standard_deviation_ratio: 0.5566556180820742,
@@ -139,9 +142,10 @@ defmodule Statistex do
       %Statistex{
         total: 3450,
         average: 492.85714285714283,
-        variance: 2857.142857142857,
-        standard_deviation: 53.452248382484875,
-        standard_deviation_ratio: 0.1084538372977954,
+        m2: 17142.857142857145,
+        variance: 2857.1428571428573,
+        standard_deviation: 53.45224838248488,
+        standard_deviation_ratio: 0.10845383729779542,
         median: 500.0,
         percentiles: %{25 => 450.0, 50 => 500.0, 75 => 500.0},
         frequency_distribution: %{450 => 3, 500 => 3, 600 => 1},
@@ -195,7 +199,8 @@ defmodule Statistex do
     maximum = List.last(sorted_samples)
 
     average = average(sorted_samples, total: total, sample_size: sample_size)
-    variance = variance(sorted_samples, average: average, sample_size: sample_size)
+    m2 = m2(sorted_samples)
+    variance = variance(sorted_samples, sample_size: sample_size, m2: m2)
 
     frequency_distribution = frequency_distribution(sorted_samples)
 
@@ -209,6 +214,7 @@ defmodule Statistex do
     %__MODULE__{
       total: total,
       average: average,
+      m2: m2,
       variance: variance,
       standard_deviation: standard_deviation,
       standard_deviation_ratio: standard_deviation_ratio,
@@ -298,7 +304,7 @@ defmodule Statistex do
       iex> Statistex.average([])
       ** (ArgumentError) Passed an empty list ([]) to calculate statistics from, please pass a list containing at least one number.
   """
-  @spec average(samples, keyword) :: float
+  @spec average(samples | :ignored, keyword) :: float
   def average(samples, options \\ [])
   def average([], _), do: raise(ArgumentError, @empty_list_error_message)
 
@@ -310,6 +316,77 @@ defmodule Statistex do
   end
 
   @doc """
+  Calculate the running sum of squared differences from the current mean.
+
+  This value is only used when trying to calculate the variance in a single pass, using Welford's online algorithm.
+
+  `Argumenterror` is raised if the given list is empty.
+
+  ## Options
+
+  If are performing single-pass variance, you can calculate a new M2 for a single data point by providing your single data point, along with the previous `:sample_size`, `:m2`, and either the `:average` or `:total`. See `StatistexTest` for an example of how this can be done.
+
+  If calculating M2 over your entire dataset, do supply any options (do not use `:total` or `:average` that were previously calculated) or your result will be wrong.
+
+  ## Examples
+
+      iex> Statistex.m2([10])
+      0.0
+
+      iex> Statistex.m2([10, 20])
+      50.0
+
+      iex> Statistex.m2([10, 20, 30])
+      200.0
+
+      iex> Statistex.m2(30, sample_size: 2, m2: 50.0, average: 15.0)
+      200.0
+
+      iex> Statistex.m2([])
+      ** (ArgumentError) Passed an empty list ([]) to calculate statistics from, please pass a list containing at least one number.
+  """
+  @spec m2(samples | sample, keyword) :: float
+  def m2(samples, options \\ [])
+  def m2([], _), do: raise(ArgumentError, @empty_list_error_message)
+
+  def m2(samples, options) when is_list(samples) do
+    count = Keyword.get(options, :sample_size, 0)
+    m2 = Keyword.get(options, :m2, 0.0)
+    total = Keyword.get(options, :total, 0.0)
+
+    mean =
+      case {count, total} do
+        {0, 0.0} ->
+          0
+
+        {0, 0} ->
+          0
+
+        _ ->
+          Keyword.get_lazy(options, :average, fn ->
+            average(:ignored, sample_size: count, total: total)
+          end)
+      end
+
+    do_m2(samples, count, mean, m2)
+  end
+
+  def m2(sample, options) do
+    m2([sample], options)
+  end
+
+  defp do_m2([], _, _, m2), do: m2
+
+  defp do_m2([sample | rest], count, mean, m2) do
+    count = count + 1
+    delta = sample - mean
+    mean = mean + delta / count
+    delta2 = sample - mean
+    m2 = m2 + delta * delta2
+    do_m2(rest, count, mean, m2)
+  end
+
+  @doc """
   Calculate the variance.
 
   A measurement how much samples vary (the higher the more the samples vary). This is the variance of a sample and is hence in its calculation divided by sample_size - 1 (Bessel's correction).
@@ -317,7 +394,7 @@ defmodule Statistex do
   `Argumenterror` is raised if the given list is empty.
 
   ## Options
-  If already calculated, the `:average` and `:sample_size` options can be provided to avoid recalulating those values.
+  If already calculated, the `:sample_size` and `:m2` options can be provided to avoid recalulating those values. Should you provide both the provided samples are wholly ignored.
 
   ## Examples
 
@@ -336,28 +413,22 @@ defmodule Statistex do
       iex> Statistex.variance([])
       ** (ArgumentError) Passed an empty list ([]) to calculate statistics from, please pass a list containing at least one number.
   """
-  @spec variance(samples, keyword) :: float
+  @spec variance(samples | :ignored, keyword) :: float
   def variance(samples, options \\ [])
   def variance([], _), do: raise(ArgumentError, @empty_list_error_message)
 
   def variance(samples, options) do
     sample_size = Keyword.get_lazy(options, :sample_size, fn -> sample_size(samples) end)
 
-    average =
-      Keyword.get_lazy(options, :average, fn -> average(samples, sample_size: sample_size) end)
+    m2 = Keyword.get_lazy(options, :m2, fn -> m2(samples) end)
 
-    do_variance(samples, average, sample_size)
+    do_variance(sample_size, m2)
   end
 
-  defp do_variance(_samples, _average, 1), do: 0.0
+  defp do_variance(1, _m2), do: 0.0
 
-  defp do_variance(samples, average, sample_size) do
-    total_variance =
-      Enum.reduce(samples, 0, fn sample, total ->
-        total + :math.pow(sample - average, 2)
-      end)
-
-    total_variance / (sample_size - 1)
+  defp do_variance(sample_size, m2) do
+    m2 / (sample_size - 1)
   end
 
   @doc """
@@ -387,7 +458,7 @@ defmodule Statistex do
       iex> Statistex.standard_deviation([])
       ** (ArgumentError) Passed an empty list ([]) to calculate statistics from, please pass a list containing at least one number.
   """
-  @spec standard_deviation(samples, keyword) :: float
+  @spec standard_deviation(samples | :ignored, keyword) :: float
   def standard_deviation(samples, options \\ [])
   def standard_deviation([], _), do: raise(ArgumentError, @empty_list_error_message)
 
@@ -425,7 +496,7 @@ defmodule Statistex do
         iex> Statistex.standard_deviation_ratio([])
         ** (ArgumentError) Passed an empty list ([]) to calculate statistics from, please pass a list containing at least one number.
   """
-  @spec standard_deviation_ratio(samples, keyword) :: float
+  @spec standard_deviation_ratio(samples | :ignored, keyword) :: float
   def standard_deviation_ratio(samples, options \\ [])
   def standard_deviation_ratio([], _), do: raise(ArgumentError, @empty_list_error_message)
 
