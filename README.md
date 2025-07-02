@@ -49,6 +49,7 @@ iex> Statistex.statistics(samples)
   standard_deviation: 10.47189577445799,
   standard_deviation_ratio: 1.46316833512058,
   total: 71.57,
+  m2: 986.9454099999999,
   variance: 109.6606011111111
 }
 # or just calculate the value you need
@@ -127,3 +128,7 @@ A couple of (hopefully) helpful points:
 * `mix test` to run tests
 * `mix dialyzer` to run dialyzer for type checking, might take a while on the first invocation (try building plts first with `mix dialyzer --plt`)
 * `mix credo` to find code style problems
+* To generate code coverage information:
+    * `mix test --cover --export-coverage default`
+    * `mix test.coverage`
+    * Open HTML files in the `cover/` directory
