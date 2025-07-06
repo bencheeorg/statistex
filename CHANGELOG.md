@@ -1,4 +1,4 @@
-## 1.1 (Unreleased)
+## 1.1.0 (2025-07-06)
 
 This release adds functionality around identifying outliers.
 
@@ -10,7 +10,7 @@ of statistics.
 
 Huge thanks for these changes go to [@NickNeck](https://github.com/NickNeck)!
 
-## 1.0 2019-07-05
+## 1.0.0 2019-07-05
 
 Import of the initial functionality from [benchee](github.com/bencheeorg/benchee).
 
