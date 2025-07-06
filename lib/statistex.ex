@@ -462,7 +462,7 @@ defmodule Statistex do
   Calculates the value at the `percentile_rank`-th percentile.
 
   Think of this as the value below which `percentile_rank` percent of the samples lie.
-  For example, if `Statistex.percentile(samples, 99) == 123.45`,
+  For example, if `Statistex.percentiles(samples, 99) == 123.45`,
   99% of samples are less than 123.45.
 
   Passing a number for `percentile_rank` calculates a single percentile.
@@ -513,6 +513,10 @@ defmodule Statistex do
   @spec percentiles(samples, number | [number(), ...]) ::
           percentiles()
   defdelegate percentiles(samples, percentiles, options), to: Percentile
+
+  @doc """
+  See `percentiles/3`.
+  """
   defdelegate percentiles(samples, percentiles), to: Percentile
 
   @doc """
@@ -703,6 +707,8 @@ defmodule Statistex do
 
   Returns: `{outliers, remaining_samples`} where `remaining_samples` has the outliers removed.
 
+  `Argumenterror` is raised if the given list is empty.
+
   ## Options
   * `:outlier_bounds` - if you already have calculated the outlier bounds.
   * `:percentiles` - you can pass it a map of calculated percentiles (25th and 75th are needed).
@@ -723,6 +729,9 @@ defmodule Statistex do
 
       iex> Statistex.outliers([50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 99, 99, 99])
       {[99, 99, 99], [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50]}
+
+      iex> Statistex.outliers([])
+      ** (ArgumentError) Passed an empty list ([]) to calculate statistics from, please pass a list containing at least one number.
   """
   @spec outliers(samples, keyword) :: {samples | [], samples}
   def outliers(samples, options \\ []) do

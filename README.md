@@ -28,7 +28,13 @@ iex> samples = [1, 3.0, 2.35, 11.0, 1.37, 35, 5.5, 10, 0, 2.35]
 # calculate all available statistics at once, efficiently reusing already calculated values
 iex> Statistex.statistics(samples)
 %Statistex{
+  total: 71.57,
   average: 7.156999999999999,
+  variance: 109.66060111111112,
+  standard_deviation: 10.471895774457991,
+  standard_deviation_ratio: 1.4631683351205802,
+  median: 2.675,
+  percentiles: %{25 => 1.2775, 50 => 2.675, 75 => 10.25},
   frequency_distribution: %{
     0 => 1,
     1 => 1,
@@ -40,16 +46,13 @@ iex> Statistex.statistics(samples)
     5.5 => 1,
     11.0 => 1
   },
-  maximum: 35,
-  median: 2.675,
-  minimum: 0,
   mode: 2.35,
-  percentiles: %{50 => 2.675},
-  sample_size: 10,
-  standard_deviation: 10.47189577445799,
-  standard_deviation_ratio: 1.46316833512058,
-  total: 71.57,
-  variance: 109.6606011111111
+  minimum: 0,
+  maximum: 35,
+  lower_outlier_bound: -12.18125,
+  upper_outlier_bound: 23.708750000000002,
+  outliers: [35],
+  sample_size: 10
 }
 # or just calculate the value you need
 iex> Statistex.average(samples)
@@ -63,6 +66,34 @@ iex> Statistex.average(samples, sample_size: 10)
 # output is likely also very different from when you have statistics.
 iex> Statistex.statistics([])
 ** (ArgumentError) Passed an empty list ([]) to calculate statistics from, please pass a list containing at least one number.
+# You can exclude outliers from the calculation of statistics
+iex> Statistex.statistics(samples, exclude_outliers: true)
+%Statistex{
+  total: 36.57,
+  average: 4.0633333333333335,
+  variance: 15.696975,
+  standard_deviation: 3.96194081227875,
+  standard_deviation_ratio: 0.9750469595435808,
+  median: 2.35,
+  percentiles: %{25 => 1.185, 50 => 2.35, 75 => 7.75},
+  frequency_distribution: %{
+    0 => 1,
+    1 => 1,
+    10 => 1,
+    1.37 => 1,
+    2.35 => 2,
+    3.0 => 1,
+    5.5 => 1,
+    11.0 => 1
+  },
+  mode: 2.35,
+  minimum: 0,
+  maximum: 11.0,
+  lower_outlier_bound: -12.18125,
+  upper_outlier_bound: 23.708750000000002,
+  outliers: [35],
+  sample_size: 9
+}
 ```
 
 ## Supported Statistics
@@ -83,6 +114,8 @@ Statistics currently supported:
 * standard_deviation_ratio
 * total
 * variance
+* outliers (determining outliers)
+* outlier bounds (lower and upper bound of when samples start being considered outliers)
 
 ## Alternatives
 
