@@ -462,7 +462,7 @@ defmodule Statistex do
   Calculates the value at the `percentile_rank`-th percentile.
 
   Think of this as the value below which `percentile_rank` percent of the samples lie.
-  For example, if `Statistex.percentile(samples, 99) == 123.45`,
+  For example, if `Statistex.percentiles(samples, 99) == 123.45`,
   99% of samples are less than 123.45.
 
   Passing a number for `percentile_rank` calculates a single percentile.
@@ -513,6 +513,10 @@ defmodule Statistex do
   @spec percentiles(samples, number | [number(), ...]) ::
           percentiles()
   defdelegate percentiles(samples, percentiles, options), to: Percentile
+
+  @doc """
+  See `percentiles/3`.
+  """
   defdelegate percentiles(samples, percentiles), to: Percentile
 
   @doc """
