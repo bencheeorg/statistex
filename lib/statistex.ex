@@ -703,6 +703,8 @@ defmodule Statistex do
 
   Returns: `{outliers, remaining_samples`} where `remaining_samples` has the outliers removed.
 
+  `Argumenterror` is raised if the given list is empty.
+
   ## Options
   * `:outlier_bounds` - if you already have calculated the outlier bounds.
   * `:percentiles` - you can pass it a map of calculated percentiles (25th and 75th are needed).
@@ -723,6 +725,9 @@ defmodule Statistex do
 
       iex> Statistex.outliers([50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 99, 99, 99])
       {[99, 99, 99], [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50]}
+
+      iex> Statistex.outliers([])
+      ** (ArgumentError) Passed an empty list ([]) to calculate statistics from, please pass a list containing at least one number.
   """
   @spec outliers(samples, keyword) :: {samples | [], samples}
   def outliers(samples, options \\ []) do
