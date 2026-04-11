@@ -16,14 +16,6 @@ defmodule Statistex.MixProject do
       ],
       package: package(),
       test_coverage: [tool: ExCoveralls],
-      preferred_cli_env: [
-        coveralls: :test,
-        "coveralls.detail": :test,
-        "coveralls.post": :test,
-        "coveralls.html": :test,
-        "coveralls.travis": :test,
-        "safe_coveralls.travis": :test
-      ],
       dialyzer: [
         flags: [:unmatched_returns, :error_handling, :underspecs],
         plt_file: {:no_warn, "tools/plts/benchee.plt"}
@@ -33,6 +25,19 @@ defmodule Statistex.MixProject do
       description: """
       Calculate statistics on data sets, reusing previously calculated values or just all metrics at once. Part of the benchee library family.
       """
+    ]
+  end
+
+  def cli do
+    [
+      preferred_cli_env: [
+        coveralls: :test,
+        "coveralls.detail": :test,
+        "coveralls.post": :test,
+        "coveralls.html": :test,
+        "coveralls.travis": :test,
+        "safe_coveralls.travis": :test
+      ]
     ]
   end
 
