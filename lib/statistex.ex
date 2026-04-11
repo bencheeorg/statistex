@@ -13,7 +13,6 @@ defmodule Statistex do
   """
 
   alias Statistex.{Mode, Percentile}
-  require Integer
 
   import Statistex.Helper, only: [maybe_sort: 2]
 
