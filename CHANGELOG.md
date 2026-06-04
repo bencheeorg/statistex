@@ -1,3 +1,8 @@
+## 1.1.1 (2026-06-04)
+
+### Bugfixes
+* Fix a compile warning on elixir 1.20
+
 ## 1.1.0 (2025-07-06)
 
 This release adds functionality around identifying outliers.
